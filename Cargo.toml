@@ -4,6 +4,14 @@ version = "0.1.0"
 authors = ["Rafal Michalski <royaltm75@gmail.com>"]
 edition = "2018"
 publish = false
+repository = "https://github.com/royaltm/spectrusty-tutorial"
+homepage = "https://royaltm.github.io/spectrusty-tutorial/"
+readme = "README.md"
+license = "BlueOak-1.0.0"
+include = ["/src/", "/TUTORIAL_STEP*.md", "/README.md"]
+description = """
+Demonstrates step by step, the concepts of the SPECTRUSTY library.
+"""
 
 [dependencies]
 cpal = "0.12"

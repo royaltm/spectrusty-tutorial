@@ -1,4 +1,10 @@
-//! This is the example implementation of STEP 1 of the SPECTRUSTY tutorial using `minifb` framebuffer crate.
+/*
+    This program is free to use under the terms of the Blue Oak Model License 1.0.0.
+    See: https://blueoakcouncil.org/license/1.0.0
+*/
+//! This is an example implementation of STEP 1 of the SPECTRUSTY tutorial using `minifb` framebuffer.
+//!
+//! See: https://github.com/royaltm/spectrusty-tutorial/
 use core::mem;
 use minifb::{Key, KeyRepeat, Scale, Window, WindowOptions, Menu};
 use rand::prelude::*;

@@ -50,6 +50,16 @@ Created binary (application) `my-spectrum-emu` package
 then you are good to go.
 
 
+Tutorial steps
+--------------
+
+* [Step 1 - Baby steps][TUTORIAL_STEP1]
+* [Step 2 - Buzz on][TUTORIAL_STEP2]
+* [Step 3 - R Tape loading error][TUTORIAL_STEP3]
+* Step 4
+* Step 5
+
+
 [Rust]: https://www.rust-lang.org/
 [Cargo]: https://crates.io/
 [RUSTUP]: https://www.rust-lang.org/learn/get-started#installing-rust
