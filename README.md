@@ -28,6 +28,7 @@ Other notable traits, are:
 which are implemented by external device emulators, such as printers, joysticks, serial ports, sound
 chipsets, microdrives e.t.c.
 
+
 Prerequisites
 -------------
 
@@ -59,6 +60,14 @@ Tutorial steps
 * Step 4
 * Step 5
 
+
+Licensing
+---------
+
+This tutorial and example sources in this repository are free to use under the terms of the Blue Oak Model License 1.0.0.
+See: [https://blueoakcouncil.org/license/1.0.0](https://blueoakcouncil.org/license/1.0.0).
+
+Some TAP files in the [resources/] directory are ZX Spectrum games that are made available for free download and distribution. Check out [worldofspectrum.org](https://worldofspectrum.org/) for more information, programs and games.
 
 [Rust]: https://www.rust-lang.org/
 [Cargo]: https://crates.io/
