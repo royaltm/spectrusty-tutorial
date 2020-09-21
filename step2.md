@@ -200,6 +200,13 @@ The [example][step2.rs] program using [minifb] and [cpal], covering the scope of
 cargo run --bin step2 --release
 ```
 
+
+### Next
+
+[Step 3 - R Tape loading error](step3.md).
+
+Back to [index][SPECTRUSTY].
+
 [SPECTRUSTY]: https://royaltm.github.io/spectrusty/
 [tutorial]: https://royaltm.github.io/spectrusty-tutorial/
 [step2.rs]: https://github.com/royaltm/spectrusty-tutorial/blob/master/src/bin/step2.rs

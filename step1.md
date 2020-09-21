@@ -390,6 +390,7 @@ impl<C: Cpu> ZxSpectrumModel<C> {
 
 Well, I think that's already enough for this step. More models will come in the future and we'll extend the `run` function yet many times over, that's for sure. Just stay with me a little longer.
 
+
 ### Example
 
 The [example][step1.rs] program using [minifb] and covering the scope of this tutorial can be run with:
@@ -397,6 +398,12 @@ The [example][step1.rs] program using [minifb] and covering the scope of this tu
 ```sh
 cargo run --bin step1 --release
 ```
+
+### Next
+
+[Step 2 - Buzz on](step2.md).
+
+Back to [index][SPECTRUSTY].
 
 [SPECTRUSTY]: https://royaltm.github.io/spectrusty/
 [tutorial]: https://royaltm.github.io/spectrusty-tutorial/
