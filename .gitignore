@@ -1,4 +1,5 @@
 /target
+/ghp
 **/*.rs.bk
 Cargo.lock
 *.log
