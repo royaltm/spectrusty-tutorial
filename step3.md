@@ -14,7 +14,7 @@ As your new Spectrum lives in a digital world only, we have to forget about thos
 
 We'd have to feed the Spectrum with some `EAR IN` state changes (a.k.a pulses) somehow. And to read `MIC OUT` pulses too. And those pulses decode as [TAP] bytes, and those [TAP] bytes encode as pulses.
 
-The good news is, that the part of SPECTRUSTY is also ... [spectrusty-formats] crate! Not only we can parse and construct some popular [format] files, but we can also "play" those TAPs as pulses.
+The good news is, that the part of SPECTRUSTY is also ... [spectrusty-formats] crate! Not only we can parse and construct some popular formats, but we can also "play" those TAPs as pulses.
 
 First, we'll add some more imports...
 
@@ -725,8 +725,12 @@ and you may actually `SAVE` your program this time.
 [minifb]: https://crates.io/crates/minifb
 [cpal]: https://crates.io/crates/cpal
 [spectrusty-formats]: https://docs.rs/spectrusty-formats/
+[TAP]: https://docs.rs/spectrusty-formats/*/spectrusty_formats/tap/index.html
 [Tape]: https://docs.rs/spectrusty-utils/*/spectrusty_utils/tap/struct.Tape.html
 [fs::File]: https://doc.rust-lang.org/std/fs/struct.File.html
+[io::Read]: https://doc.rust-lang.org/std/io/trait.Read.html
+[io::Write]: https://doc.rust-lang.org/std/io/trait.Write.html
+[io::Seek]: https://doc.rust-lang.org/std/io/trait.Seek.html
 [`io::Cursor<Vec<u8>>`]: https://doc.rust-lang.org/std/io/struct.Cursor.html
 [From]: https://doc.rust-lang.org/std/convert/trait.From.html
 [ControlUnit]: https://docs.rs/spectrusty/*/spectrusty/chip/trait.ControlUnit.html

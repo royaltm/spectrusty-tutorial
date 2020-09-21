@@ -211,6 +211,7 @@ cargo run --bin step2 --release
 [SDL2]: https://www.libsdl.org/index.php
 [Blep]: https://docs.rs/spectrusty/*/spectrusty/audio/trait.Blep.html
 [spectrusty-audio]: https://docs.rs/spectrusty-audio/
+[EarMicOutAudioFrame::render_earmic_out_audio_frame]: https://docs.rs/spectrusty-core/*/spectrusty_core/audio/trait.EarMicOutAudioFrame.html#tymethod.render_earmic_out_audio_frame
 [EarMicAmps4]: https://docs.rs/spectrusty/*/spectrusty/audio/struct.EarMicAmps4.html
 [EarOutAmps4]: https://docs.rs/spectrusty/*/spectrusty/audio/struct.EarOutAmps4.html
 [AmpLevels]: https://docs.rs/spectrusty/*/spectrusty/audio/trait.AmpLevels.html
@@ -218,3 +219,4 @@ cargo run --bin step2 --release
 [FromSample]: https://docs.rs/spectrusty/*/spectrusty/audio/trait.FromSample.html
 [Carousel]: https://docs.rs/spectrusty/*/spectrusty/audio/carousel/index.html
 [audio::synth]: https://docs.rs/spectrusty/0.1.0/spectrusty/audio/synth/index.html
+[spectrusty-audio::host]: https://docs.rs/spectrusty-audio/0.1.0/spectrusty_audio/host/index.html

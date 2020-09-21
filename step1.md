@@ -33,7 +33,7 @@ struct ZxSpectrum16k {
 As you can see, there is lot of imports already... and brace yourself for much, much more. You could use an import all `*` facility instead, but this way I can show where each components comes from.
 
 Ok, so far we have added a CPU implementation and a chipset with the memory type declared as its generic parameter.
-`Ula` implements the "heart" of one of ZX Spectrum 16k or 48k version and `UlaPAL` is a slightly more specialized type for the 50Hz PAL version.
+[Ula] implements the "heart" of one of ZX Spectrum 16k or 48k version and [UlaPAL] is a slightly more specialized type for the 50Hz PAL version.
 
 But what if we wanted to use another type of memory or a CPU and resuse the same code?
 
@@ -248,7 +248,7 @@ fn main() -> Result<()> {
 
 ### Generalized solution
 
-Up to this point we assumed only one specific Spectrum type can be used in your program. What if you'd want to be able to switch the Spectrum model run-time?
+Up to this point we assumed only one specific Spectrum type can be used in your program. What if you'd like to be able to switch the Spectrum model run-time?
 
 For that, we'll have to slightly pivot and embrace generics a little bit more. If you are new to Rust, it would be wise to read more about generics now, [here in this book](https://doc.rust-lang.org/book/ch10-00-generics.html).
 
@@ -411,8 +411,12 @@ cargo run --bin step1 --release
 [web browser]: https://github.com/royaltm/spectrusty/tree/master/examples/web-zxspectrum/
 [minifb]: https://crates.io/crates/minifb
 [rand]: https://crates.io/crates/rand
+[Ula]: https://docs.rs/spectrusty/*/spectrusty/chip/ula/struct.Ula.html
+[UlaPAL]: https://docs.rs/spectrusty/*/spectrusty/chip/ula/type.UlaPAL.html
+[Z80CMOS]: https://docs.rs/z80emu/*/z80emu/z80/type.Z80CMOS.html
 [PixelBuffer]: https://docs.rs/spectrusty/*/spectrusty/video/pixel/trait.PixelBuffer.html
 [PixelBuffer::Pixel]: https://docs.rs/spectrusty/*/spectrusty/video/pixel/trait.PixelBuffer.html#associatedtype.Pixel
+[Palette]: https://docs.rs/spectrusty/*/spectrusty/video/pixel/trait.Palette.html
 [Palette::Pixel]: https://docs.rs/spectrusty/*/spectrusty/video/pixel/trait.Palette.html#associatedtype.Pixel
 [video::pixel]: https://docs.rs/spectrusty/*/spectrusty/video/pixel/index.html
 [PixelBufA24]: https://docs.rs/spectrusty/*/spectrusty/video/pixel/struct.PixelBufA24.html
