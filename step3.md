@@ -721,7 +721,7 @@ and you may actually `SAVE` your program this time.
 
 ### Next
 
-Back to [index][SPECTRUSTY].
+Back to [index][tutorial].
 
 [SPECTRUSTY]: https://royaltm.github.io/spectrusty/
 [tutorial]: https://royaltm.github.io/spectrusty-tutorial/

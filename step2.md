@@ -205,7 +205,7 @@ cargo run --bin step2 --release
 
 [Step 3 - R Tape loading error](step3.md).
 
-Back to [index][SPECTRUSTY].
+Back to [index][tutorial].
 
 [SPECTRUSTY]: https://royaltm.github.io/spectrusty/
 [tutorial]: https://royaltm.github.io/spectrusty-tutorial/

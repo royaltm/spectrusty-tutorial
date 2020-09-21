@@ -403,7 +403,7 @@ cargo run --bin step1 --release
 
 [Step 2 - Buzz on](step2.md).
 
-Back to [index][SPECTRUSTY].
+Back to [index][tutorial].
 
 [SPECTRUSTY]: https://royaltm.github.io/spectrusty/
 [tutorial]: https://royaltm.github.io/spectrusty-tutorial/
