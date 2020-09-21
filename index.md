@@ -67,6 +67,9 @@ Licensing
 This tutorial and example sources in this repository are free to use under the terms of the Blue Oak Model License 1.0.0.
 See: [https://blueoakcouncil.org/license/1.0.0](https://blueoakcouncil.org/license/1.0.0).
 
+<script>var clicky_site_ids = clicky_site_ids || []; clicky_site_ids.push(101270192);</script>
+<script async src="//static.getclicky.com/js"></script>
+
 [SPECTRUSTY]: https://royaltm.github.io/spectrusty/
 [tutorial]: https://royaltm.github.io/spectrusty-tutorial/
 [Rust]: https://www.rust-lang.org/

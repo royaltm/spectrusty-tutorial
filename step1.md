@@ -405,6 +405,9 @@ cargo run --bin step1 --release
 
 Back to [index][tutorial].
 
+<script>var clicky_site_ids = clicky_site_ids || []; clicky_site_ids.push(101270192);</script>
+<script async src="//static.getclicky.com/js"></script>
+
 [SPECTRUSTY]: https://royaltm.github.io/spectrusty/
 [tutorial]: https://royaltm.github.io/spectrusty-tutorial/
 [step1.rs]: https://github.com/royaltm/spectrusty-tutorial/blob/master/src/bin/step1.rs
