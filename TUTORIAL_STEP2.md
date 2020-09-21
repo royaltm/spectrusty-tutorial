@@ -194,24 +194,27 @@ I won't wander into details on how to implement carousel for any particular fram
 
 ### Example
 
-The [example][src/bin/step2.rs] program using [minifb] and [cpal], covering the scope of this tutorial can be run with:
+The [example][step2.rs] program using [minifb] and [cpal], covering the scope of this tutorial can be run with:
 
 ```sh
 cargo run --bin step2 --release
 ```
 
-
+[SPECTRUSTY]: https://royaltm.github.io/spectrusty/
+[tutorial]: https://royaltm.github.io/spectrusty-tutorial/
+[step2.rs]: https://github.com/royaltm/spectrusty-tutorial/blob/master/src/bin/step2.rs
+[minifb]: https://crates.io/crates/minifb
+[cpal]: https://crates.io/crates/cpal
 [Nyquist frequency]: https://en.wikipedia.org/wiki/Nyquist_frequency
 [Hard sync]: https://www.cs.cmu.edu/~eli/papers/icmc01-hardsync.pdf
 [sync tutorial]: http://www.slack.net/~ant/bl-synth
-[cpal]:
-[SDL2]:
-[Blep]:
-[spectrusty-audio]:
-[EarMicAmps4]:
-[EarOutAmps4]:
-[AmpLevels]:
-[`Vec<T>`]:
-[FromSample]:
-[Carousel]:
-[audio::synth]:
+[SDL2]: https://www.libsdl.org/index.php
+[Blep]: https://docs.rs/spectrusty/*/spectrusty/audio/trait.Blep.html
+[spectrusty-audio]: https://docs.rs/spectrusty-audio/
+[EarMicAmps4]: https://docs.rs/spectrusty/*/spectrusty/audio/struct.EarMicAmps4.html
+[EarOutAmps4]: https://docs.rs/spectrusty/*/spectrusty/audio/struct.EarOutAmps4.html
+[AmpLevels]: https://docs.rs/spectrusty/*/spectrusty/audio/trait.AmpLevels.html
+[`Vec<T>`]: https://doc.rust-lang.org/std/vec/struct.Vec.html
+[FromSample]: https://docs.rs/spectrusty/*/spectrusty/audio/trait.FromSample.html
+[Carousel]: https://docs.rs/spectrusty/*/spectrusty/audio/carousel/index.html
+[audio::synth]: https://docs.rs/spectrusty/0.1.0/spectrusty/audio/synth/index.html

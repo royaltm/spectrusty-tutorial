@@ -634,7 +634,7 @@ fn run<C: Cpu, M: ZxMemory>(
 }
 
 fn main() -> Result<()> {
-    simple_logger::SimpleLogger::new().with_level(log::LevelFilter::Debug).init()?;
+    simple_logger::SimpleLogger::new().with_level(log::LevelFilter::Info).init()?;
     let mut args = std::env::args().skip(1);
     // parsing the 1st command argument as path to the TAP file
     let tap_file_name = args.next();

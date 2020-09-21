@@ -139,7 +139,7 @@ The [PixelBuffer] trait consists of methods for handling the way pixel colors ar
 
 Functions such as: `is_running`, `update_keys`, `acquire_video_buffer` and `update_display` depend solely on the emulator host environment and is out of the scope of the Spectrusty's library (with some notable exceptions). The implementation of this should be provided by the emulator builder. However the [spectrusty-utils] crate provides some helper methods to ease this task even further.
 
-You should definitely check the implementation of this tutorial [step1] or the examples directory of SPECTRUSTY repository to see how it can be done for [SDL2] or even a [web browser].
+You should definitely check the implementation of this tutorial [step1.rs] or the examples directory of SPECTRUSTY repository to see how it can be done for [SDL2] or even a [web browser].
 
 Now let's look inside our new `ZxSpectrum`'s methods:
 
@@ -392,15 +392,16 @@ Well, I think that's already enough for this step. More models will come in the 
 
 ### Example
 
-The [example][src/bin/step1.rs] program using [minifb] and covering the scope of this tutorial can be run with:
+The [example][step1.rs] program using [minifb] and covering the scope of this tutorial can be run with:
 
 ```sh
 cargo run --bin step1 --release
 ```
 
-[SPECTRUSTY]
-[tutorial]
-[step1]
+[SPECTRUSTY]: https://royaltm.github.io/spectrusty/
+[tutorial]: https://royaltm.github.io/spectrusty-tutorial/
+[step1.rs]: https://github.com/royaltm/spectrusty-tutorial/blob/master/src/bin/step1.rs
+[minifb]: https://crates.io/crates/minifb
 [Turing Machine]: https://cs.stackexchange.com/questions/16729/are-real-computers-finite-state-machines
 [prepare your Rust crate]: https://doc.rust-lang.org/cargo/getting-started/first-steps.html
 [spectrusty-utils]: https://crates.io/crates/spectrusty-utils
@@ -410,10 +411,10 @@ cargo run --bin step1 --release
 [web browser]: https://github.com/royaltm/spectrusty/tree/master/examples/web-zxspectrum/
 [minifb]: https://crates.io/crates/minifb
 [rand]: https://crates.io/crates/rand
-[PixelBuffer]
-[PixelBuffer::Pixel]
-[Palette::Pixel]
-[video::pixel]
-[PixelBufA24]
-[SpectrumPalRGB24]
-[ThreadSyncTimer]
+[PixelBuffer]: https://docs.rs/spectrusty/*/spectrusty/video/pixel/trait.PixelBuffer.html
+[PixelBuffer::Pixel]: https://docs.rs/spectrusty/*/spectrusty/video/pixel/trait.PixelBuffer.html#associatedtype.Pixel
+[Palette::Pixel]: https://docs.rs/spectrusty/*/spectrusty/video/pixel/trait.Palette.html#associatedtype.Pixel
+[video::pixel]: https://docs.rs/spectrusty/*/spectrusty/video/pixel/index.html
+[PixelBufA24]: https://docs.rs/spectrusty/*/spectrusty/video/pixel/struct.PixelBufA24.html
+[SpectrumPalRGB24]: https://docs.rs/spectrusty/*/spectrusty/video/pixel/struct.SpectrumPalRGB24.html
+[ThreadSyncTimer]: https://docs.rs/spectrusty/*/spectrusty/chip/struct.ThreadSyncTimer.html
