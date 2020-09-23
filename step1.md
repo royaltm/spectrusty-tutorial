@@ -103,7 +103,7 @@ In television sets and computer monitors, the entire front area of the tube is s
 
 A single pass of a raster beam is a video frame. The number of CPU cycles (or `T-states` that are being used as time units here) of every frame always stays the same.
 
-Now it becomes obvious: we should run our emulator in a loop. First, we'll run code for the constant number of cycles. Then from the collected data, we'll render a video raster as an image and the sound as short audio samples. Then we'll collect the user input and pass it to the state machine. Rinse and repeat.
+Now it becomes obvious: the emulator should be run in a loop. First, it should run code for the constant number of cycles. Then from the collected data, it should render a video raster as an image and the sound as short audio samples. Then it should poll user input and pass it to the state machine. Rinse and repeat.
 
 ```rust
 // yeah...more imports...
