@@ -18,13 +18,10 @@ Here is the list of traits realizing their most important functions:
 - [EarMicOutAudioFrame] and [EarInAudioFrame] to help generating sound from EAR IN/OUT and MIC OUT lines;
 - [Video] and [VideoFrame] for rendering video output;
 
-Other notable traits are:
+Other notable traits for peripherals, such as printers, joysticks, serial ports, sound chipsets, microdrives e.t.c. are:
 
-- [BusDevice] implemented by devices attached to the I/O BUS,
+- [BusDevice] implemented by devices attached to the I/O BUS;
 - [MemoryExtension] implemented by devices that page in external ROM memory;
-
-They are being implemented by emulators of the peripherals, such as printers, joysticks, serial ports, sound
-chipsets, microdrives e.t.c.
 
 
 Prerequisites
