@@ -17,7 +17,7 @@ To make this super easy, let's say we want to build a bare ZX Spectrum 16k witho
 
 What we need is a `CPU`, some memory, and a chipset.
 
-To nicely organize code, we'll define a struct for holding our components:
+Let's define a struct for holding our components:
 
 ```rust
 use spectrusty::z80emu::{Cpu, Z80NMOS};
@@ -30,9 +30,10 @@ struct ZxSpectrum16k {
 }
 ```
 
-As you can see, there is a lot of imports involved... and there'll be much, much more. While you could use the glob `*` facility instead, this way, you can better see where each component comes from.
+As you can see, there is a lot of imports involved... and there'll be much, much more. While you could use the glob `*` facility instead, this way, you can better see where each component originates from.
 
-So far, we have added a CPU type and a chipset with the concrete memory type declared as the chipset's generic parameter - `M`.
+So far, we have added a CPU type and a chipset with the concrete memory. The `Memory16k` type is declared in place of the chipset's generic parameter - `M`.
+
 [Ula] implements the heart of one of ZX Spectrum 16k or 48k version, and [UlaPAL] is a slightly more specialized type for the 50Hz PAL version.
 
 But what if we wanted to use another type of memory or a CPU while reusing the same code?

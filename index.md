@@ -7,7 +7,7 @@ SPECTRUSTY Tutorial
 The components are [structs] and [enums] that can interact with each other using Rust's [trait system]. They are often composed of [generic types] when more than one sub-component of a kind can be used.
 
 In SPECTRUSTY, the base part of the emulated computer is its control chip (e.g. [Ula] or [Ula128]).
-Here is the list of traits realizing their most important functions:
+Here is the list of the most important traits:
 
 - [ControlUnit] to execute Z80 code via [Cpu] and access peripheral devices;
 - [FrameState] to access the clock counters;
