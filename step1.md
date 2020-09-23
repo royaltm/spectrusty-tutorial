@@ -136,11 +136,11 @@ fn main() -> Result<()> {
 }
 ```
 
-The [PixelBuffer] trait provides methods for handling the way pixel colors are being placed into the raw slices of bytes, sometimes called video frame buffers. There are a few implementations of `PixelBuffer` available in the [video::pixel] module for most common pixel formats. For the purpose of this example, we will use [PixelBufA24] that defines a single color pixel as an array of 3 bytes representing: red, green, and blue channels. The [SpectrumPalRGB24] is an implementation of the [Palette] trait providing particular colors.
+The [PixelBuffer] trait is for handling the way pixel colors are being placed into the byte buffers. There are a few implementations of `PixelBuffer` available in the [video::pixel] module for most common pixel formats. For the purpose of this example, we will use [PixelBufA24] that defines a single color pixel as an array of 3 bytes representing: red, green, and blue channels. The [SpectrumPalRGB24] is an implementation of the [Palette] trait providing particular colors.
 
-Functions such as: `is_running`, `update_keys`, `acquire_video_buffer`, and `update_display` depend solely on the emulator host environment and is out of the scope of the Spectrusty's library (with some notable exceptions). The implementation of this should be provided by the emulator builder. However, the [spectrusty-utils] crate provides some helper methods to ease this task even further.
+Functions such as: `is_running`, `update_keys`, `acquire_video_buffer`, and `update_display` depend solely on the emulator host environment and is out of the scope of this library. The implementation for them should be provided by the emulator builder. However, the [spectrusty-utils] crate can help when dealing with [keyboard events].
 
-You may later check the implementation of this tutorial [step1.rs] or the examples directory of SPECTRUSTY repository to see how it can be done for [SDL2] or even a [web browser].
+You may later check the implementation of this tutorial [step1.rs] or the examples directory of SPECTRUSTY repository to see how it can be done for [SDL2] or a [web browser].
 
 Now let's look inside our new `ZxSpectrum`'s methods:
 
@@ -188,7 +188,7 @@ impl<C: Cpu, M: ZxMemory> ZxSpectrum<C, M> {
 The [Palette] trait is for retrieving actual pixel colors corresponding to Spectrum's color palette.
 You may define a palette implementation yourself or use one of the palettes defined in the [video::pixel] module. Remember that the associated [Palette::Pixel] type should match the type of [PixelBuffer::Pixel].
 
-The last missing part is synchronization. After each iteration of our loop, we need to pause the running thread for some time to match the rate of Spectrum's CPU clock.
+The last missing part is synchronization. After each iteration of the emulator loop, it needs to pause the running thread for some time to match the rate of Spectrum's CPU clock.
 
 For this purpose, you can use [ThreadSyncTimer]:
 
@@ -287,7 +287,7 @@ fn run<C: Cpu, M: ZxMemory>(
 
 The generic parameters are the same as used with the `ZxSpectrum` struct definition, so nothing interesting is happening yet.
 
-Now, the `HostEnvironment` struct will wrap everything that is needed to run our emulator in the host environment. This includes a window handle, video buffer, audio host, event pump, etc. The new function accepts a mutable reference to our Spectrum and returns an action request, which may look like this:
+Now, the `HostEnvironment` struct will wrap everything that is needed to run the emulator in the host environment. This includes a window handle, video buffer, audio host, event pump, etc. The new function accepts a mutable reference to the `ZxSpectrum` and returns an action request, which may look like this:
 
 ```rust
 #[derive(Debug, Clone, Copy)]
@@ -416,6 +416,7 @@ Back to [index][tutorial].
 [Turing Machine]: https://cs.stackexchange.com/questions/16729/are-real-computers-finite-state-machines
 [prepare your Rust crate]: https://doc.rust-lang.org/cargo/getting-started/first-steps.html
 [spectrusty-utils]: https://crates.io/crates/spectrusty-utils
+[keyboard events]: https://docs.rs/spectrusty-utils/*/spectrusty_utils/keyboard/
 [ROM]: https://github.com/royaltm/spectrusty/tree/master/resources/
 [48.rom]: https://github.com/royaltm/spectrusty/tree/master/resources/roms/48.rom
 [SDL2]: https://github.com/royaltm/spectrusty/tree/master/examples/sdl2-zxspectrum/
