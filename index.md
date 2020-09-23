@@ -1,7 +1,7 @@
 SPECTRUSTY Tutorial
 ===================
 
-Uncommitted Logic Array (ULA) chip. The chip is responsible for I/O with peripherals such as the keyboard and for generating audio and video output. ULA also generates interrupts. When it needs to read pixel data from video memory, it can pause the clock when the CPU is accessing the same part of RAM (memory contention). Moreover, the raw address, data, and control lines of Z80 CPU (in SPECTRUSTY called "the BUS") are being exposed to allow external devices to be attached.
+Sinclair ZX Spectrum is an 8-bit computer that consists of a Central Processing Unit, a clock, some memory, and a custom Sinclair Uncommitted Logic Array (ULA) chip. The chip is responsible for I/O with peripherals such as the keyboard and for generating audio and video output. ULA also generates interrupts. When it needs to read pixel data from video memory, it can pause the clock when the CPU is accessing the same part of RAM (memory contention). Moreover, the raw address, data, and control lines of Z80 CPU (in SPECTRUSTY called "the BUS") are being exposed to allow external devices to be attached.
 
 [SPECTRUSTY] is a set of components designed in a way that mimics Spectrum's hardware parts and peripherals.
 The components are [structs] and [enums] that can interact with each other using Rust's [trait system]. It takes advantage of the polymorphic approach - when more than one component of a kind can be used, its type exposes generic parameters.
