@@ -55,7 +55,7 @@ type ZxSpectrum16k<C> = ZxSpectrum<C, Memory16k>;
 type ZxSpectrum48k<C> = ZxSpectrum<C, Memory48k>;
 ```
 
-Sooo.. we can not only have a different memory now but also a different CPU variant. For example: [Z80CMOS].
+Sooo.. we can use a different memory type and also a different CPU variant. For example: [Z80CMOS].
 
 Now for the `main` dish:
 
@@ -74,9 +74,11 @@ In the later steps, I'll show you how to make this struct accept other types of 
 
 Finally, we have created an instance of a ZX Spectrum model.
 
-But how exactly do we run it?
+But how exactly do we run it? And what does it even mean?
 
-The `spectrum` object represents a kind of a Finite State Machine, perhaps even a [Turing Machine]. So by running it, I mean that the machine can alter its state by executing instructions. The state of this particular FSM is being changed by executing the Z80 machine code that resides in its memory. So... it would be better if we have some code loaded first before we try to run anything. Otherwise, your computer will be executing a series of `NOP`s (0x00) followed by `RST 38` (0xFF) in the upper 32kb RAM.
+The `spectrum` object represents a kind of a Finite State Machine, perhaps even a [Turing Machine]. So by running it, I mean that the machine can alter its state by executing instructions.
+
+The state of this particular FSM is being changed by executing the Z80 machine code that resides in its memory. So... it would be better to have some code loaded first before trying to run anything. Otherwise, the CPU will be executing a series of `NOP`s (0x00) followed by `RST 38` (0xFF) in the upper 32kb RAM.
 
 Let's just load the original Spectrum's [ROM] software into the emulated memory:
 
