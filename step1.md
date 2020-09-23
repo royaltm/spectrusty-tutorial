@@ -6,18 +6,18 @@ This is a part of the [tutorial] for the [SPECTRUSTY] library.
 Step 1 - Baby steps
 -------------------
 
-First, let's [prepare your Rust crate](https://doc.rust-lang.org/cargo/getting-started/first-steps.html) and add the following to the `Cargo.toml` of your project:
+First, let's [prepare your Rust crate](https://doc.rust-lang.org/cargo/getting-started/first-steps.html) then add the following to the `Cargo.toml` of your project:
 
 ```toml
 [dependencies]
 spectrusty = "0.1"
 ```
 
-To make this super easy let's say we want to build a bare ZX Spectrum 16k without any peripherals.
+To make this super easy, let's say we want to build a bare ZX Spectrum 16k without any peripherals.
 
-What we need is: a `CPU`, some memory and a chipset.
+What we need is a `CPU`, some memory, and a chipset.
 
-To nicely organize code we'll define a struct for holding our components:
+To nicely organize code, we'll define a struct for holding our components:
 
 ```rust
 use spectrusty::z80emu::{Cpu, Z80NMOS};
@@ -30,14 +30,14 @@ struct ZxSpectrum16k {
 }
 ```
 
-As you can see, there is lot of imports already... and brace yourself for much, much more. You could use an import all `*` facility instead, but this way I can show where each components comes from.
+As you can see, there is a lot of imports involved... and there'll be much, much more. While you could use the glob `*` facility instead, this way, you can better see where each component comes from.
 
-Ok, so far we have added a CPU implementation and a chipset with the memory type declared as its generic parameter.
-[Ula] implements the "heart" of one of ZX Spectrum 16k or 48k version and [UlaPAL] is a slightly more specialized type for the 50Hz PAL version.
+So far, we have added a CPU type and a chipset with the concrete memory type declared as the chipset's generic parameter - `M`.
+[Ula] implements the heart of one of ZX Spectrum 16k or 48k version, and [UlaPAL] is a slightly more specialized type for the 50Hz PAL version.
 
-But what if we wanted to use another type of memory or a CPU and resuse the same code?
+But what if we wanted to use another type of memory or a CPU while reusing the same code?
 
-We can refactor slightly our struct so it'll also accept generic parameters:
+We can refactor our struct slightly so it can also accept generic parameters:
 
 ```rust
 // ... more imports going in order
@@ -54,7 +54,7 @@ type ZxSpectrum16k<C> = ZxSpectrum<C, Memory16k>;
 type ZxSpectrum48k<C> = ZxSpectrum<C, Memory48k>;
 ```
 
-Sooo.. we can now not only have a different memory but also a different CPU variant. For example: [Z80CMOS].
+Sooo.. we can not only have a different memory now but also a different CPU variant. For example: [Z80CMOS].
 
 Now for the `main` dish:
 
@@ -69,16 +69,15 @@ fn main() -> Result<()> {
 }
 ```
 
-Later I'll show you how to make this struct also accept other types of chipsets.
+In the later steps, I'll show you how to make this struct accept other types of chipsets.
 
-Finally, we have created an instance of our Spectrum.
+Finally, we have created an instance of your ZX Spectrum.
 
-But how exactly do we "run" it?
+But how exactly do we run it?
 
-Our `spectrum` represents a kind of a Finite State Machine, perhaps even a [Turing Machine]. By "running" it, we mean that the machine can alter its state by executing instructions. The state of this particular FSM is being altered by executing Z80 machine code that reside in its memory. So... we'd better have some code loaded into memory first, before we try to execute it. Otherwise we'll be executing a series of `NOP`s (0x00) followed by `RST 38` (0xFF) in the upper 32kb RAM.
+The `spectrum` object represents a kind of a Finite State Machine, perhaps even a [Turing Machine]. By running it, I mean that the machine can alter its state by executing instructions. The state of this particular FSM is being changed by executing the Z80 machine code that resides in its memory. So... it would be better if we have some code loaded first before we try to run anything. Otherwise, your computer will be executing a series of `NOP`s (0x00) followed by `RST 38` (0xFF) in the upper 32kb RAM.
 
-A significant part of what makes Sinclair ZX Spectrum is not its hardware but rather its software.
-We'll start with a program that resides in Spectrum's [ROM]:
+Let's just load the original Spectrum's [ROM] software into the emulated memory:
 
 ```rust
     let rom_file = std::fs::File::open("resources/roms/48.rom")?;
@@ -89,22 +88,22 @@ You may get a copy of a [48.rom] file as Amstrad has kindly given an open permit
 
 Now, can we finally run it?
 
-Short ansert: yes.
+Short answer: yes.
 
-Long answer: yes, but how do we know if something is even happening "inside" the F.S.M? I think that you'd like to be able to experience the side-effects of changes of the Spectrum's internal state as video and audio effects. It would be even better if we could provide it with some input, e.g. keyboard presses.
+Long answer: yes, but how would you know if something is even happening inside the FSM? I think that you'd like to experience the side-effects of changes of the Spectrum's internal state as video and audio effects. It would be even better if you could provide it with some input, like keyboard presses.
 
-So not only we need to execute Z80 code, but at the same time we also need to render some video and audio. How?
+Not only do we need to execute the Z80 code, but we also need to render some side effects and accept user input at the same time.
 
-We can simply take advantage of the way `ULA` generates video signal. The electron beam is scanning each line of the tube from the left to the right then retracing to the beginning of the next line again and again from the top to the bottom of the screen (described from the user perspective looking at the monitor).
+Well... we can start by observing how `ULA` generates its video signal.
 
-When the beam reaches the bottom of the screen, the process is being repeated. Such a pass of a monitor beam is called a frame (at least in this tutorial). Additionally the number of CPU cycles (or `T-states` that are being used as time units here) of every frame is always the same.
+In television sets and computer monitors, the entire front area of the tube is scanned repetitively and systematically from top to bottom by the electron beam. ULA provides color information for the raster beam while the screen is being produced. It does so for the fixed number of CPU cycles. Then repeats the whole process again and again.
 
-Knowing this, the answer is obvious: let's run our emulator in a loop. First we execute code for the constant number of T-states, then from the collected video and audio data we render video as still images and audio as short audio samples, then we collect the user inputs and pass it to the state machine. Rinse and repeat.
+A single pass of a raster beam we call a video frame. The number of CPU cycles (or `T-states` that are being used as time units here) of every frame always stays the same.
 
-The order of the above steps, or rather the point when the loop begins is not really that important unless we want to save a snapshot of our FSM. (more on that topic later, I promise).
+Now it becomes obvious: let's run our emulator in a loop. First, we'll run code for the constant number of cycles. Then from the collected data, we'll render a video raster as an image and the sound as short audio samples. Then we'll collect the user input and pass it to the state machine. Rinse and repeat.
 
 ```rust
-// emhhhhh....ok, let's go
+// yeah...more imports...
 use spectrusty::video::{
     Video, Palette, PixelBuffer, BorderSize,
     pixel::{PixelBufA24, SpectrumPalRGB24}
@@ -115,8 +114,7 @@ fn main() -> Result<()> {
     //... ✂
     //... later in main()
 
-    // here we select the largest possible border,
-    // we can ask user about it but it's out of this tutorial's scope
+    // here for simplicity we hard code the largest possible border
     let border = BorderSize::Full;
 
     while is_running() {
@@ -135,11 +133,11 @@ fn main() -> Result<()> {
 }
 ```
 
-The [PixelBuffer] trait consists of methods for handling the way pixel colors are being placed into the raw slices of bytes, sometimes called video frame buffers. There are a few implementations of `PixelBuffer` available in [video::pixel] module for most common pixel formats. For the purpose of this example we will use [PixelBufA24] which defines a single color pixel as an array of 3 bytes representing: red, green and blue channels. The [SpectrumPalRGB24] is an implementation of the `Palette` trait providing particular colors.
+The [PixelBuffer] trait provides methods for handling the way pixel colors are being placed into the raw slices of bytes, sometimes called video frame buffers. There are a few implementations of `PixelBuffer` available in the [video::pixel] module for most common pixel formats. For the purpose of this example, we will use [PixelBufA24] that defines a single color pixel as an array of 3 bytes representing: red, green, and blue channels. The [SpectrumPalRGB24] is an implementation of the [Palette] trait providing particular colors.
 
-Functions such as: `is_running`, `update_keys`, `acquire_video_buffer` and `update_display` depend solely on the emulator host environment and is out of the scope of the Spectrusty's library (with some notable exceptions). The implementation of this should be provided by the emulator builder. However the [spectrusty-utils] crate provides some helper methods to ease this task even further.
+Functions such as: `is_running`, `update_keys`, `acquire_video_buffer`, and `update_display` depend solely on the emulator host environment and is out of the scope of the Spectrusty's library (with some notable exceptions). The implementation of this should be provided by the emulator builder. However, the [spectrusty-utils] crate provides some helper methods to ease this task even further.
 
-You should definitely check the implementation of this tutorial [step1.rs] or the examples directory of SPECTRUSTY repository to see how it can be done for [SDL2] or even a [web browser].
+You may later check the implementation of this tutorial [step1.rs] or the examples directory of SPECTRUSTY repository to see how it can be done for [SDL2] or even a [web browser].
 
 Now let's look inside our new `ZxSpectrum`'s methods:
 
@@ -177,7 +175,7 @@ impl<C: Cpu, M: ZxMemory> ZxSpectrum<C, M> {
     fn reset(&mut self, hard: bool) {
         self.ula.reset(&mut self.cpu, hard)
     }
-    // so we can trigger NMI
+    // so we can trigger Non-Maskable Interrupt
     fn trigger_nmi(&mut self) -> bool {
         self.ula.nmi(&mut self.cpu)
     }
@@ -185,11 +183,11 @@ impl<C: Cpu, M: ZxMemory> ZxSpectrum<C, M> {
 ```
 
 The [Palette] trait is for retrieving actual pixel colors corresponding to Spectrum's color palette.
-You may define a palette implementation yourself or use one of palettes defined in the [video::pixel] module. Remember that the associated [Palette::Pixel] type should match the associated type of [PixelBuffer::Pixel].
+You may define a palette implementation yourself or use one of the palettes defined in the [video::pixel] module. Remember that the associated [Palette::Pixel] type should match the type of [PixelBuffer::Pixel].
 
-The last missing part is synchronization. After each iteration of our loop we need to pause the running thread for some time to match the rate of Spectrum's CPU clock.
+The last missing part is synchronization. After each iteration of our loop, we need to pause the running thread for some time to match the rate of Spectrum's CPU clock.
 
-For that we'll be using [ThreadSyncTimer]:
+For this purpose, you can use [ThreadSyncTimer]:
 
 ```rust
 // just one new import?
@@ -219,7 +217,7 @@ Assuming you have taken care of the host environment, this is enough to run your
 
 ### Some entropy
 
-To make your Spectrum feel slightly more real, let's initialize Spectrum's memory with some entropy when it's being initialized.
+To make your Spectrum feel slightly more real, let's initialize its memory with some entropy when it's being initialized.
 
 First, you need to add the [rand] crate to your `Cargo.toml`:
 
@@ -248,11 +246,11 @@ fn main() -> Result<()> {
 
 ### Generalized solution
 
-Up to this point we assumed only one specific Spectrum type can be used in your program. What if you'd like to be able to switch the Spectrum model run-time?
+Up to this moment, we assumed only one specific Spectrum type can be used in your program. What if you'd like to be able to switch the Spectrum model run-time?
 
-For that, we'll have to slightly pivot and embrace generics a little bit more. If you are new to Rust, it would be wise to read more about generics now, [here in this book](https://doc.rust-lang.org/book/ch10-00-generics.html).
+For that, we'll have to slightly pivot and embrace generics a little bit more. If you are new to Rust, it would be wise to read more about generic types now, [here in this book](https://doc.rust-lang.org/book/ch10-00-generics.html).
 
-First let's move out the emulator loop part to the separate, polymorphic function:
+First, let's move out the emulator loop part to the separate, polymorphic function:
 
 ```rust
 fn run<C: Cpu, M: ZxMemory>(
@@ -284,9 +282,9 @@ fn run<C: Cpu, M: ZxMemory>(
 }
 ```
 
-The generic parameters are exactly the same as used with `ZxSpectrum` struct definition, so there's nothing very interesting happening here yet.
+The generic parameters are the same as used with the `ZxSpectrum` struct definition, so nothing interesting is happening yet.
 
-Now the `HostEnvironment` struct will wrap everything that is needed to run our emulator in the host environment, like a window handle, video buffer, audio host, event pump, etc. The new function accepts a mutable reference to our Spectrum and returns an action request, which may look like this:
+Now, the `HostEnvironment` struct will wrap everything that is needed to run our emulator in the host environment. This includes a window handle, video buffer, audio host, event pump, etc. The new function accepts a mutable reference to our Spectrum and returns an action request, which may look like this:
 
 ```rust
 #[derive(Debug, Clone, Copy)]
@@ -302,7 +300,7 @@ enum ModelReq {
 }
 ```
 
-Then in the `main` we add a loop that calls `run` and changes the model according to the request or just quits:
+In the `main` we need to add a loop that calls `run` and changes the model according to the request, or just exits the whole program:
 
 ```rust
     let mut spec16 = ZxSpectrum16k::<Z80NMOS>::default();
@@ -324,7 +322,7 @@ Then in the `main` we add a loop that calls `run` and changes the model accordin
     }
 ```
 
-The only missing part yet is the `ZxSpectrumModel` enum which should be rather straightforward:
+The only missing parts are the `ZxSpectrumModel` enum, which should be straightforward:
 
 ```rust
 enum ZxSpectrumModel<C: Cpu> {
@@ -332,7 +330,7 @@ enum ZxSpectrumModel<C: Cpu> {
     Spectrum48(ZxSpectrum48k<C>),
 }
 ```
-... and its implementation which we can make a little more interesting by implementing model hot-swapping (at least with regards to its CPU and memory).
+... and its implementation. Actually, we can make it a little more interesting by implementing model hot-swapping.
 
 ```rust
 impl<C: Cpu> ZxSpectrumModel<C> {
@@ -388,7 +386,7 @@ impl<C: Cpu> ZxSpectrumModel<C> {
 }
 ```
 
-Well, I think that's already enough for this step. More models will come in the future and we'll extend the `run` function yet many times over, that's for sure. Just stay with me a little longer.
+I think that's enough for this step. More models will come in the future, and we'll extend the `run` function yet many times over, that's for sure. Just stay with me for a little bit longer.
 
 
 ### Example
