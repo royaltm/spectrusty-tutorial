@@ -93,7 +93,7 @@ Now, can we finally run it?
 
 Short answer: yes.
 
-Long answer: yes, but how would you know if something is even happening inside the FSM? I think that you'd like to experience the side-effects of changes of the Spectrum's internal state as video and audio effects. It would be even better if you could provide it with some input, like keyboard presses.
+Long answer: yes, but how would you know if something is even happening inside the FSM? I think that you'd like to see and hear the side-effects of changes of the Spectrum's internal state. It would be even better if you could provide it with some input, like keyboard presses.
 
 Not only do we need to execute the Z80 code, but we also need to render some side effects and accept user input at the same time.
 
@@ -101,9 +101,9 @@ Well... we can start by observing how `ULA` generates its video signal.
 
 In television sets and computer monitors, the entire front area of the tube is scanned repetitively and systematically from top to bottom by the electron beam. ULA provides color information for the raster beam while the screen is being produced. It does so for the fixed number of CPU cycles. Then repeats the whole process again and again.
 
-A single pass of a raster beam we call a video frame. The number of CPU cycles (or `T-states` that are being used as time units here) of every frame always stays the same.
+A single pass of a raster beam is a video frame. The number of CPU cycles (or `T-states` that are being used as time units here) of every frame always stays the same.
 
-Now it becomes obvious: let's run our emulator in a loop. First, we'll run code for the constant number of cycles. Then from the collected data, we'll render a video raster as an image and the sound as short audio samples. Then we'll collect the user input and pass it to the state machine. Rinse and repeat.
+Now it becomes obvious: we should run our emulator in a loop. First, we'll run code for the constant number of cycles. Then from the collected data, we'll render a video raster as an image and the sound as short audio samples. Then we'll collect the user input and pass it to the state machine. Rinse and repeat.
 
 ```rust
 // yeah...more imports...
