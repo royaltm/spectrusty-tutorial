@@ -1,17 +1,19 @@
 SPECTRUSTY Tutorial
 ===================
 
-This is the repository of the [tutorial] for the [SPECTRUSTY] library.
+Click [here][tutorial] to read the [tutorial] for the [SPECTRUSTY] library.
+
+This repository contains example programs created from the steps in the tutorial.
 
 
 Prerequisites
 -------------
 
-To make most of this tutorial you'll need the [Rust] language compiler and the [Cargo] package manager.
+To make most of this tutorial, you'll need the [Rust] language compiler and the [Cargo] package manager.
 
-Both are best served with a [RUSTUP] utility, but some linuxes and 3rd party packaging systems also provide appropriate Rust + Cargo packages, if you don't like such language scoped version managers.
+Both are best served with a [RUSTUP] utility. If you don't like the language scoped version managers, some Linux distributions and 3rd party packaging systems also provide appropriate Rust and Cargo packages.
 
-To check if you can continue, you should be able to run the `cargo` utility, by creating a new repository for your emulator program:
+To check if you can continue, you should be able to run the `cargo` utility by creating a new repository for your emulator program:
 
 ```rust
 cargo new my-spectrum-emu
@@ -23,7 +25,7 @@ If you see a message:
 Created binary (application) `my-spectrum-emu` package
 ```
 
-then you are good to go.
+then you are good to [go][tutorial].
 
 
 Licensing
