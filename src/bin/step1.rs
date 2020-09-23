@@ -91,7 +91,7 @@ impl<C: Cpu, M: ZxMemory> ZxSpectrum<C, M> {
     fn reset(&mut self, hard: bool) {
         self.ula.reset(&mut self.cpu, hard)
     }
-    // so we can trigger NMI
+    // so we can trigger Non-Maskable Interrupt
     fn trigger_nmi(&mut self) -> bool {
         self.ula.nmi(&mut self.cpu)
     }
