@@ -36,7 +36,7 @@ So far, we have added a CPU type and a chipset with the concrete memory. The `Me
 
 [Ula] implements the heart of one of ZX Spectrum 16k or 48k version, and [UlaPAL] is a slightly more specialized type for the 50Hz PAL version.
 
-But what if we wanted to use another type of memory or a CPU while reusing the same code?
+But what if you wanted to use another type of memory or a CPU while reusing the same code?
 
 We can refactor our struct slightly so it can also accept generic parameters:
 
