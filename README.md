@@ -9,7 +9,7 @@ This repository contains example programs created from the steps in the tutorial
 Prerequisites
 -------------
 
-To make most of this tutorial, you'll need the [Rust] language compiler and the [Cargo] package manager.
+The [Rust] language compiler with the [Cargo] package manager.
 
 Both are best served with a [RUSTUP] utility. If you don't like the language scoped version managers, some Linux distributions and 3rd party packaging systems also provide appropriate Rust and Cargo packages.
 
