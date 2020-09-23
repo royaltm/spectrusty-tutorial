@@ -71,7 +71,7 @@ fn main() -> Result<()> {
 
 In the later steps, I'll show you how to make this struct accept other types of chipsets.
 
-Finally, we have created an instance of your ZX Spectrum.
+Finally, we have created an instance of a ZX Spectrum model.
 
 But how exactly do we run it?
 
@@ -217,7 +217,7 @@ Assuming you have taken care of the host environment, this is enough to run your
 
 ### Some entropy
 
-To make your Spectrum feel slightly more real, let's initialize its memory with some entropy when it's being initialized.
+To make your Spectrum feel slightly more real, let's initialize its memory with some randomness at boot time.
 
 First, you need to add the [rand] crate to your `Cargo.toml`:
 
