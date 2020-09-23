@@ -75,7 +75,7 @@ Finally, we have created an instance of a ZX Spectrum model.
 
 But how exactly do we run it?
 
-The `spectrum` object represents a kind of a Finite State Machine, perhaps even a [Turing Machine]. By running it, I mean that the machine can alter its state by executing instructions. The state of this particular FSM is being changed by executing the Z80 machine code that resides in its memory. So... it would be better if we have some code loaded first before we try to run anything. Otherwise, your computer will be executing a series of `NOP`s (0x00) followed by `RST 38` (0xFF) in the upper 32kb RAM.
+The `spectrum` object represents a kind of a Finite State Machine, perhaps even a [Turing Machine]. So by running it, I mean that the machine can alter its state by executing instructions. The state of this particular FSM is being changed by executing the Z80 machine code that resides in its memory. So... it would be better if we have some code loaded first before we try to run anything. Otherwise, your computer will be executing a series of `NOP`s (0x00) followed by `RST 38` (0xFF) in the upper 32kb RAM.
 
 Let's just load the original Spectrum's [ROM] software into the emulated memory:
 
@@ -84,7 +84,7 @@ Let's just load the original Spectrum's [ROM] software into the emulated memory:
     spectrum.ula.memory_mut().load_into_rom(rom_file)?;
 ```
 
-You may get a copy of a [48.rom] file as Amstrad has kindly given an open permition to re-distribute the Spectrum's ROM content.
+You may get a copy of a [48.rom] file as Amstrad has kindly given open permission to re-distribute the Spectrum's ROM content.
 
 Now, can we finally run it?
 
