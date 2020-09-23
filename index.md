@@ -4,7 +4,7 @@ SPECTRUSTY Tutorial
 [Sinclair ZX Spectrum] is an 8-bit computer that consists of a Central Processing Unit, a clock, some memory, and a custom Sinclair Uncommitted Logic Array (ULA) chip. The chip is responsible for I/O with peripherals such as the keyboard and for generating audio and video output. ULA also generates interrupts. When it needs to read pixel data from video memory, it can pause the clock when the CPU is accessing the same part of RAM (memory contention). Moreover, the raw address, data, and control lines of Z80 CPU (in SPECTRUSTY called "the BUS") are being exposed to allow external devices to be attached.
 
 [SPECTRUSTY] is a set of components designed in a way that mimics Spectrum's hardware parts and peripherals.
-The components are [structs] and [enums] that can interact with each other using Rust's [trait system]. It takes advantage of the polymorphic approach - when more than one component of a kind can be used, its type exposes generic parameters.
+The components are [structs] and [enums] that can interact with each other using Rust's [trait system]. They are often composed of [generic types] when more than one sub-component of a kind can be used.
 
 In SPECTRUSTY, the base part of the emulated computer is its control chip (e.g. [Ula] or [Ula128]).
 Here is the list of traits realizing their most important functions:
@@ -74,6 +74,7 @@ See: [https://blueoakcouncil.org/license/1.0.0](https://blueoakcouncil.org/licen
 [trait system]: https://doc.rust-lang.org/book/ch19-03-advanced-traits.html
 [structs]: https://doc.rust-lang.org/book/ch05-01-defining-structs.html
 [enums]: https://doc.rust-lang.org/book/ch06-01-defining-an-enum.html
+[generic types]: https://doc.rust-lang.org/book/ch10-00-generics.html
 [Ula]: https://docs.rs/spectrusty/*/spectrusty/chip/ula/struct.Ula.html
 [Cpu]: https://docs.rs/z80emu/*/z80emu/trait.Cpu.html
 [BusDevice]: https://docs.rs/spectrusty/*/spectrusty/bus/trait.BusDevice.html
