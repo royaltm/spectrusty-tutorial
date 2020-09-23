@@ -1,42 +1,40 @@
 SPECTRUSTY Tutorial
 ===================
 
-Sinclair ZX Spectrum is a simple 8-bit computer that consist of Central Processing Unit, a clock, some memory and a custom Sinclair Uncommitted Logic Array (ULA) chip which controls computer's I/O such as keyboard, audio and is responsible for generating video output. ULA also generates interrupts and affects the CPU access to the lower part of RAM and can pause CPU's clock when it needs to read pixel data from video memory and detects that CPU is accessing the same part of RAM. Moreover a raw Z80 data, address and control lines (in SPECTRUSTY known as "the BUS") is being exposed to allow attaching devices that communicate via IN/OUT CPU instructions and may page-in an external ROM memory.
+Uncommitted Logic Array (ULA) chip. The chip is responsible for I/O with peripherals such as the keyboard and for generating audio and video output. ULA also generates interrupts. When it needs to read pixel data from video memory, it can pause the clock when the CPU is accessing the same part of RAM (memory contention). Moreover, the raw address, data, and control lines of Z80 CPU (in SPECTRUSTY called "the BUS") are being exposed to allow external devices to be attached.
 
-[SPECTRUSTY] is a set of components and interfaces designed in a way that mimicks Spectrum's hardware parts and peripherials.
+[SPECTRUSTY] is a set of components designed in a way that mimics Spectrum's hardware parts and peripherals.
+The components are [structs] and [enums] that can interact with each other using Rust's [trait system]. It takes advantage of the polymorphic approach - when more than one component of a kind can be used, its type exposes generic parameters.
 
-Components of SPECTRUSTY interact with each other using Rust's trait system. When more than one component of a kind can be provided, its API exposes generic type parameters to allow for more flexibility, but at the same time taking advantage of monomorphization to generate optimized code.
+In SPECTRUSTY, the base part of the emulated computer is its control chip (e.g. [Ula] or [Ula128]).
+Here is the list of traits realizing their most important functions:
 
-SPECTRUSTY's API defines important traits, from emulator builder perspective, such as:
+- [ControlUnit] to execute Z80 code via [Cpu] and access peripheral devices;
+- [FrameState] to access the clock counters;
+- [MemoryAccess] and [ZxMemory] to be able to modify or read the content of the emulated memory;
+- [KeyboardInterface] to be able to change the state of the Spectrum's keyboard;
+- [MicOut] to read signal from MIC OUT lines;
+- [EarIn] to feed the EAR IN lines with external input;
+- [EarMicOutAudioFrame] and [EarInAudioFrame] to help generating sound from EAR IN/OUT and MIC OUT lines;
+- [Video] and [VideoFrame] for rendering video output;
 
-- [ControlUnit] to execute Spectrum's programs and access peripheral devices,
-- [FrameState] to access the clock counters,
-- [MemoryAccess] and [ZxMemory] to be able to modify or read content of the emulated memory,
-- [KeyboardInterface] to be able to change state of the Spectrum's keyboard,
-- [MicOut] to make use of generated MIC OUT lines signals,
-- [EarIn] to feed the EAR IN lines with external signals,
-- [EarMicOutAudioFrame] and [EarInAudioFrame] to help generating sound from EAR IN/OUT and MIC OUT line singals,
-- [Video] and [VideoFrame] to allow rendering of output video,
+Other notable traits are:
 
-that are implemented by the core chipset emulators, e.g. [Ula] and [Ula128].
+- [BusDevice] implemented by devices attached to the I/O BUS,
+- [MemoryExtension] implemented by devices that page in external ROM memory;
 
-Other notable traits, are:
-
-- [BusDevice] to access devices attached to the I/O BUS and make use of their side effects,
-- [MemoryExtension] to provide devices that pages external ROM memory depending on the address of the executed instruction;
-
-which are implemented by external device emulators, such as printers, joysticks, serial ports, sound
+They are being implemented by emulators of the peripherals, such as printers, joysticks, serial ports, sound
 chipsets, microdrives e.t.c.
 
 
 Prerequisites
 -------------
 
-To make most of this tutorial you'll need the [Rust] language compiler and the [Cargo] package manager.
+You'll need the [Rust] language compiler with the [Cargo] package manager.
 
-Both are best served with a [RUSTUP] utility, but some linuxes and 3rd party packaging systems also provide appropriate Rust + Cargo packages, if you don't like such language scoped version managers.
+Both are best served with a [RUSTUP] utility. If you don't like the language scoped version managers, some Linux distributions and 3rd party packaging systems also provide appropriate Rust and Cargo packages.
 
-To check if you can continue, you should be able to run the `cargo` utility, by creating a new repository for your emulator program:
+To check if you can continue, you should be able to run the `cargo` utility by creating a new repository for your emulator program:
 
 ```rust
 cargo new my-spectrum-emu
@@ -75,6 +73,11 @@ See: [https://blueoakcouncil.org/license/1.0.0](https://blueoakcouncil.org/licen
 [Rust]: https://www.rust-lang.org/
 [Cargo]: https://crates.io/
 [RUSTUP]: https://www.rust-lang.org/learn/get-started#installing-rust
+[trait system]: https://doc.rust-lang.org/book/ch19-03-advanced-traits.html
+[structs]: https://doc.rust-lang.org/book/ch05-01-defining-structs.html
+[enums]: https://doc.rust-lang.org/book/ch06-01-defining-an-enum.html
+[Ula]: https://docs.rs/spectrusty/*/spectrusty/chip/ula/struct.Ula.html
+[Cpu]: https://docs.rs/z80emu/*/z80emu/trait.Cpu.html
 [BusDevice]: https://docs.rs/spectrusty/*/spectrusty/bus/trait.BusDevice.html
 [ControlUnit]: https://docs.rs/spectrusty/*/spectrusty/chip/trait.ControlUnit.html
 [EarIn]: https://docs.rs/spectrusty/*/spectrusty/chip/trait.EarIn.html
