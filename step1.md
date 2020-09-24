@@ -3,6 +3,8 @@ SPECTRUSTY Tutorial
 
 This is a part of the [tutorial] for the [SPECTRUSTY] library.
 
+![Step 1](example-step1.jpg)
+
 Step 1 - Baby steps
 -------------------
 
@@ -220,6 +222,8 @@ Assuming you have taken care of the host environment, this is enough to run your
 
 ### Some entropy
 
+![Entropy](entropy-step1.jpg)
+
 To make your Spectrum feel slightly more real, let's initialize its memory with some randomness at boot time.
 
 First, you need to add the [rand] crate to your `Cargo.toml`:
@@ -400,6 +404,9 @@ The [example][step1.rs] program using [minifb] and covering the scope of this tu
 cargo run --bin step1 --release
 ```
 
+[![ZX Spectrum keyboard layout][keyboard]][keyboard]
+
+
 ### Next
 
 [Step 2 - Buzz on](step2.md).
@@ -434,3 +441,4 @@ Back to [index][tutorial].
 [PixelBufA24]: https://docs.rs/spectrusty/*/spectrusty/video/pixel/struct.PixelBufA24.html
 [SpectrumPalRGB24]: https://docs.rs/spectrusty/*/spectrusty/video/pixel/struct.SpectrumPalRGB24.html
 [ThreadSyncTimer]: https://docs.rs/spectrusty/*/spectrusty/chip/struct.ThreadSyncTimer.html
+[keyboard]: keyboard48.jpg

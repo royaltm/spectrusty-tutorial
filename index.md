@@ -3,6 +3,8 @@ SPECTRUSTY Tutorial
 
 [Sinclair ZX Spectrum] is an 8-bit computer that consists of a Central Processing Unit, a clock, some memory, and a custom Sinclair Uncommitted Logic Array (ULA) chip. The chip is responsible for I/O with peripherals such as the keyboard and for generating audio and video output. ULA also generates interrupts. When it needs to read pixel data from video memory, it can pause the clock when the CPU is accessing the same part of RAM (memory contention). Moreover, the raw address, data, and control lines of Z80 CPU (in SPECTRUSTY called "the BUS") are being exposed to allow external devices to be attached.
 
+[![S P E C T R U S T Y][SPECTRUSTY img]][SPECTRUSTY]
+
 [SPECTRUSTY] is a set of components designed in a way that mimics Spectrum's hardware parts and peripherals.
 The components are [structs] and [enums] that can interact with each other using Rust's [trait system]. They are often composed of [generic types] when more than one sub-component of a kind can be used.
 
@@ -55,6 +57,8 @@ Tutorial steps
 * Step 4 - soon
 * Step 5 - soon
 
+[![ZX Spectrum keyboard layout][keyboard]][keyboard]
+
 
 Licensing
 ---------
@@ -66,6 +70,8 @@ See: [https://blueoakcouncil.org/license/1.0.0](https://blueoakcouncil.org/licen
 <script async src="//static.getclicky.com/js"></script>
 
 [Sinclair ZX Spectrum]: https://en.wikipedia.org/wiki/ZX_Spectrum
+[SPECTRUSTY img]: spectrusty.png
+[keyboard]: keyboard48.jpg
 [SPECTRUSTY]: https://royaltm.github.io/spectrusty/
 [tutorial]: https://royaltm.github.io/spectrusty-tutorial/
 [Rust]: https://www.rust-lang.org/
