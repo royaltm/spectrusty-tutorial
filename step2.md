@@ -27,7 +27,7 @@ When the emulator runs, the changes to the EAR and MIC states are recorded as ti
 
 Fortunately, audio engineers have noticed that the [pattern of the square steps] is independent of the sampling frequency. Thus, it should be easy to pre-calculate this pattern and apply it to the stepping changes, with a little bit of scaling. This technique is called [Hard sync].
 
-The solution is a so-called Bandwidth-Limited Pulse Buffer (`BLEP`). If you want to know the details, don't hesitate to read an excellent [sync tutorial].
+The solution is a Bandwidth-Limited Pulse Buffer (`BLEP`). If you want to know the details, don't hesitate to read an excellent [sync tutorial].
 
 
 ### Synthesizing
