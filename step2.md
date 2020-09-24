@@ -3,6 +3,8 @@ SPECTRUSTY Tutorial
 
 This is a part of the [tutorial] for the [SPECTRUSTY] library.
 
+![Step 2](example-step2.jpg)
+
 Step 2 - Buzz on
 ----------------
 
