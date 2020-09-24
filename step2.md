@@ -145,7 +145,7 @@ EAR  MIC  level
  1    1     3
 ```
 
-And that is exactly what [EarMicOutAudioFrame::render_earmic_out_audio_frame] method does. If we only want to hear the EAR changes and ignore the MIC changes, we can replace [EarMicAmps4] with [EarOutAmps4].
+And that is exactly what [EarMicOutAudioFrame::render_earmic_out_audio_frame] method does. If you only want to hear the EAR changes and ignore the MIC changes, you can replace [EarMicAmps4] with [EarOutAmps4].
 
 Now, step 3. In this example, we assume the `audio` object is capable of providing an audio buffer as a [vector][Vec<T>] of audio samples `T`:
 
