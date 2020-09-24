@@ -10,7 +10,7 @@ Step 2 - Buzz on
 
 Wouldn't it be nice if your Spectrum could at least `BEEP` and make some keystroke noises?
 
-Unfortunately synthesizing, and playing audio stream isn't very easy. That's why this whole step is solely dedicated to making your emulator go beep buzz beep.
+Unfortunately, synthesizing and playing the audio stream isn't very easy. That's why this whole step is solely dedicated to making your emulator go beep buzz beep.
 
 There are some challenges involved:
 
@@ -19,7 +19,7 @@ There are some challenges involved:
 
 Let's now focus on the first challenge.
 
-If perhaps, you already know enough about audio signal processing and understand the first challenge, just skip the following 4 paragraphs and go straight to the solution.
+If you understand the first challenge, just skip the following 4 paragraphs and go straight to the solution.
 
 Bare ZX Spectrum produces sound by alternating the voltage on its EAR and MIC output lines. Only two states are possible: high or low. If this state is changing fast enough, we could hear some tone. But the shape of such a sound wave is not the natural sinusoid but instead is [square][square wave].
 
