@@ -1,9 +1,9 @@
 SPECTRUSTY Tutorial
 ===================
 
-Click [here][tutorial] to read the [tutorial] for the [SPECTRUSTY] library.
+Example programs from the [tutorial] for building your own emulators with the [SPECTRUSTY] library.
 
-This repository contains example programs created from the steps in the tutorial.
+This supplementary repository contains Rust crate with sources built from each of the tutorial steps.
 
 
 Prerequisites
