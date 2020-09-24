@@ -3,7 +3,7 @@ SPECTRUSTY Tutorial
 
 Example programs from the [tutorial] for building your own emulators with the [SPECTRUSTY] library.
 
-This supplementary repository contains Rust crate with sources built from each of the tutorial steps.
+This supplementary repository contains Rust crate with sources built from each step of the tutorial.
 
 [![ZX Spectrum keyboard layout][keyboard]][keyboard]
 
