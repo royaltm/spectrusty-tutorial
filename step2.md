@@ -6,49 +6,54 @@ This is a part of the [tutorial] for the [SPECTRUSTY] library.
 Step 2 - Buzz on
 ----------------
 
-Wouldn't it be nice if our Spectrum could at least `BEEP` and make some key stroke noises?
+Wouldn't it be nice if your Spectrum could at least `BEEP` and make some keystroke noises?
 
-Unfortunately synthesizing and playing audio stream isn't very straightforward. That's why this whole step is solely dedicated to make your emulator buzzing.
+Unfortunately synthesizing, and playing audio stream isn't very easy. That's why this whole step is solely dedicated to making your emulator go beep buzz beep.
 
-There are two challenges:
+There are some challenges involved:
 
-* First we need to produce some audio samples from emulator's frame pass data.
-* Next we need to seamlessly direct those samples into some audio output device.
+* First, we need to produce some audio samples from data collected while running a single loop iteration.
+* Next, we need to seamlessly stream those samples into the audio output device.
 
-Let's focus on the first one as it's not trivial as it would seem. If perhaps, you already have some knowledge about audio signal processing, just skip the following 4 paragraphs, and get straight to the solution.
+Let's now focus on the first challenge.
 
-Bare ZX Spectrum produces sound by alternating voltage on its EAR and MIC output lines. Only two states are possible: high or low. If it alternates this state fast enough (but not too fast) we could hear some tone. But the shape of such a sound wave is not the natural sinusoid but is rather square.
+If perhaps, you already know enough about audio signal processing and understand the first challenge, just skip the following 4 paragraphs and go straight to the solution.
 
-When SPECTRUSTY runs, it records the changes to the EAR and MIC states as T-state timestamps. The frequency of its CPU clock is around 3.5 MHz. That is around `3_500_000 / 44100 ~ 79` times more than the typical audio sample frequency. If you have never heard about [Nyquist frequency] or you have no idea about sound harmonics you might probably wonder what could possibly go wrong if we just assign the high output state to some amplitude A1 and the low output state to another amplitude A2 and just divide the T-states so the timestamps would match the sample time.
+Bare ZX Spectrum produces sound by alternating the voltage on its EAR and MIC output lines. Only two states are possible: high or low. If this state is changing fast enough, we could hear some tone. But the shape of such a sound wave is not the natural sinusoid but instead is [square][square wave].
 
-Well... you definitely could, but I don't recommend it. I must admit, I did something like that myself just to hear the difference. Even though my hearing abilities are below average (I barely hear anything above 9kHZ) to my ears even the simple BEEP in such a naive implementation was just muddy and unpleasant. But when I loaded something more complicated, like the TRAP DOOR game music, what I was hearing was just a noisy trash.
+The perfect square wave can be represented as an infinite sum of sinusoidal waves. The problem (definitely oversimplified here) is that the frequency of those waves tends to infinity. The digitized sound is limited by the finite sample frequency. The maximum frequency that can be sampled is called the [Nyquist frequency], which is half of the sampling frequency - usually at around 22kHZ (upper human hearing ability limit).
 
-The perfect square wave can be represented as an infinite sum of sinusoidal waves. The problem (definitely oversimplyfied here) is that the frequency of those waves tends to infinity. The digitization of sound is limited by the finite sample frequency and the maximum frequency that can be sampled is called the [Nyquist frequency], which is exactly half of the sampling frequency. Square waves that sound "clear" should be constructed from a limited number of sinusoidal waves, but the computation of such wave could be costly.
+When the emulator runs, the changes to the EAR and MIC states are recorded as timestamps. The frequency of the CPU clock is around 3.5 MHz. That is around `79` (`3_500_000 / 44100`) times more than the typical audio sample frequency. We have to somehow downscale the frequency without losing the sound quality. Digitized square waves that sound clear should be constructed from a limited number of sinusoidal waves. The computation of such waves would be costly.
 
-Fortunately some clever people have noticed that the pattern of the square steps are independent from the sampling frequency or the frequency of these steps are bound to the sample frames. Armed with this knowledge it should be quite easy to pre-calculate this pattern and apply it to the steps with a little bit of scaling. This technique is sometimes called [Hard sync]. We implement this as a so called Bandwidth-Limited Pulse Buffer (`BLEP`). If you want to know more about the technique, please indulge yourself with an excellent [sync tutorial].
+Fortunately, audio engineers have noticed that the [pattern of the square steps] is independent of the sampling frequency. Thus, it should be easy to pre-calculate this pattern and apply it to the stepping changes, with a little bit of scaling. This technique is called [Hard sync].
+
+The solution is a so-called Bandwidth-Limited Pulse Buffer (`BLEP`). If you want to know the details, don't hesitate to read an excellent [sync tutorial].
+
 
 ### Synthesizing
 
-In SPECTRUSTY the process of generating audio samples follows this steps, each frame:
+With SPECTRUSTY to generate audio samples, follow these steps for each frame:
 
 1. add some amplitude steps to the `BLEP` that correspond to the `EAR/MIC` line changes (or other sources),
 2. finalize the `BLEP` frame,
 3. render the `BLEP` frame as audio samples,
 4. prepare the `BLEP` for the next frame.
 
-For the sake of flexibility the [Blep] trait has been introduced, such that many different `BLEP` implementations can be used with SPECTRUSTY. In the [spectrusty-audio] module one such implementation exists out of the box.
+For the sake of flexibility, sample steps are added via [Blep] trait. Different `BLEP` implementations can be used this way. In the [spectrusty-audio], there is one such [implementation][audio::synth] out of the box.
 
 Let's now adapt your emulator:
 
-First we need to enable audio feature to access the [audio::synth] module:
+First, we need to enable the audio feature to access the [audio::synth] module in `Cargo.toml`:
 
 ```toml
 [dependencies]
 spectrusty = { version = "0.1", features = ["audio"] }
 ```
 
+then to your program:
+
 ```rust
-// Yassss... more imports coming your way...
+// Yasss... more imports coming your way...
 use spectrusty::audio::{
     Blep, AudioFrame, EarMicOutAudioFrame,
     AudioSample, FromSample, EarMicAmps4,
@@ -56,7 +61,7 @@ use spectrusty::audio::{
 };
 
 // the type of the Blep implementation amplitude delta
-type BlepDelta = f32; // i16 i32
+type BlepDelta = f32; // i16 or i32 can be also used instead
 
 fn main() -> Result<()> {
     //... ✂
@@ -106,7 +111,7 @@ fn run<C: Cpu, M: ZxMemory>(
 }
 ```
 
-Let's look closer at steps 1 and 2:
+Let's look closer at the steps 1 and 2:
 
 ```rust
 impl<C: Cpu, M: ZxMemory> ZxSpectrum<C, M> {
@@ -124,7 +129,7 @@ impl<C: Cpu, M: ZxMemory> ZxSpectrum<C, M> {
 }
 ```
 
-[EarMicAmps4] is an implementation of [AmpLevels] trait that is responsible for translating the linear digital levels to the sample amplitudes which should scale exponentialy in case there are more than 2 digital levels.
+[EarMicAmps4] is an implementation of [AmpLevels] trait. This trait is responsible for translating the digital audio levels to the sample amplitudes. In case there are more than 2 levels, their corresponding amplitudes should scale exponentially.
 
 We can interpret EAR and MIC lines as 4 digital levels:
 
@@ -136,10 +141,9 @@ EAR  MIC  level
  1    1     3
 ```
 
-And that is exactly what [EarMicOutAudioFrame::render_earmic_out_audio_frame] method does. If we only wanted to hear the EAR changes and ignore the MIC changes we can replace [EarMicAmps4] with [EarOutAmps4].
+And that is exactly what [EarMicOutAudioFrame::render_earmic_out_audio_frame] method does. If we only want to hear the EAR changes and ignore the MIC changes, we can replace [EarMicAmps4] with [EarOutAmps4].
 
-Now, into the part 3. In this example we assume `audio` is capable of providing some audio buffer as a [`Vec<T>`]
-of audio samples `T`:
+Now, step 3. In this example, we assume the `audio` object is capable of providing an audio buffer as a [vector][Vec<T>] of audio samples `T`:
 
 ```rust
 fn produce_audio_frame<T: AudioSample + FromSample<BlepDelta>>(
@@ -167,7 +171,7 @@ fn produce_audio_frame<T: AudioSample + FromSample<BlepDelta>>(
 
 The generic audio sample type `T` may be different from the `BlepDelta` as long as it can be converted from `BlepDelta` with the [FromSample] trait.
 
-Part 4 is pretty obvious.
+In step 4, the method [next_frame] is called on the `blep` object.
 
 That basically covers the topic of creating audio samples.
 
@@ -176,11 +180,11 @@ That basically covers the topic of creating audio samples.
 
 How to play audio seamlessly is another cookie to crunch.
 
-Most of the audio frameworks usually spawn a dedicated thread which periodically calls your function in order to fill the output buffer just in time to be played. To our emulator's loop this is a completely asynchronous process.
+Most of the audio frameworks usually spawn a dedicated thread that periodically calls your function to fill the output buffer just in time to be played. To our emulator's loop, this is a completely asynchronous process.
 
-To overcome this hurdle, Spectrusty introduces the [Carousel]. It consists of an interconnected pair of an audio producer and a consumer. The consumer lives in the audio thread. The producer is available in our loop. The producer can send the audio frame buffer of the arbitrary size to the consumer and consumer when called by the audio framework fills the audio output buffer with our audio frame data and then sends it back to be filled again. We can control how many buffers are in the circulation thus influencing the latency and stability of the sound playback stream.
+To overcome this hurdle, Spectrusty introduces the [Carousel]. It consists of an interconnected pair of an audio producer and a consumer. The consumer lives in the audio thread. The producer is available in our loop. The producer can send the audio frame buffer of the arbitrary size to the consumer and the consumer when called by the audio framework fills the audio output buffer with our audio frame data and then sends it back to be filled again. We can control how many buffers are in the circulation thus influencing the latency and stability of the sound playback stream.
 
-To simplify this task even more, there are some platform specific features that can be enabled:
+To simplify this task there are some platform-specific features that can be enabled:
 
 ```toml
 [dependencies]
@@ -189,7 +193,7 @@ spectrusty = { version = "0.1", features = ["audio", "cpal"] } # or "sdl2"
 
 providing the complete carousel solutions for [cpal] audio layer or [SDL2].
 
-I won't wander into details on how to implement carousel for any particular framework, because a quick look to the [spectrusty-audio::host] should reveal all its secrets.
+I won't wander into details on how to implement the carousel for any particular framework, because a quick look to the [spectrusty-audio::host] should reveal all its secrets.
 
 
 ### Example
@@ -215,7 +219,9 @@ Back to [index][tutorial].
 [step2.rs]: https://github.com/royaltm/spectrusty-tutorial/blob/master/src/bin/step2.rs
 [minifb]: https://crates.io/crates/minifb
 [cpal]: https://crates.io/crates/cpal
+[square wave]: https://en.wikipedia.org/wiki/Square_wave
 [Nyquist frequency]: https://en.wikipedia.org/wiki/Nyquist_frequency
+[pattern of the square steps]: https://en.wikipedia.org/wiki/Square_wave#Fourier_analysis
 [Hard sync]: https://www.cs.cmu.edu/~eli/papers/icmc01-hardsync.pdf
 [sync tutorial]: http://www.slack.net/~ant/bl-synth
 [SDL2]: https://www.libsdl.org/index.php
@@ -225,8 +231,9 @@ Back to [index][tutorial].
 [EarMicAmps4]: https://docs.rs/spectrusty/*/spectrusty/audio/struct.EarMicAmps4.html
 [EarOutAmps4]: https://docs.rs/spectrusty/*/spectrusty/audio/struct.EarOutAmps4.html
 [AmpLevels]: https://docs.rs/spectrusty/*/spectrusty/audio/trait.AmpLevels.html
-[`Vec<T>`]: https://doc.rust-lang.org/std/vec/struct.Vec.html
+[Vec<T>]: https://doc.rust-lang.org/std/vec/struct.Vec.html
 [FromSample]: https://docs.rs/spectrusty/*/spectrusty/audio/trait.FromSample.html
 [Carousel]: https://docs.rs/spectrusty/*/spectrusty/audio/carousel/index.html
-[audio::synth]: https://docs.rs/spectrusty/0.1.0/spectrusty/audio/synth/index.html
-[spectrusty-audio::host]: https://docs.rs/spectrusty-audio/0.1.0/spectrusty_audio/host/index.html
+[audio::synth]: https://docs.rs/spectrusty/*/spectrusty/audio/synth/index.html
+[spectrusty-audio::host]: https://docs.rs/spectrusty-audio/*/spectrusty_audio/host/index.html
+[next_frame]: https://docs.rs/spectrusty-audio/*/spectrusty_audio/synth/struct.BandLimited.html#method.next_frame
