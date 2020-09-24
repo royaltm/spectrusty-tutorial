@@ -5,6 +5,7 @@ Example programs from the [tutorial] for building your own emulators with the [S
 
 This supplementary repository contains Rust crate with sources built from each of the tutorial steps.
 
+[![ZX Spectrum keyboard layout][keyboard]][keyboard]
 
 Prerequisites
 -------------
@@ -38,6 +39,7 @@ Some TAP files in the [resources](resources/) directory are ZX Spectrum games th
 
 [SPECTRUSTY]: https://royaltm.github.io/spectrusty/
 [tutorial]: https://royaltm.github.io/spectrusty-tutorial/
+[keyboard]: resources/spectrusty.png
 [Rust]: https://www.rust-lang.org/
 [Cargo]: https://crates.io/
 [RUSTUP]: https://www.rust-lang.org/learn/get-started#installing-rust
