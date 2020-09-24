@@ -39,7 +39,7 @@ Some TAP files in the [resources](resources/) directory are ZX Spectrum games th
 
 [SPECTRUSTY]: https://royaltm.github.io/spectrusty/
 [tutorial]: https://royaltm.github.io/spectrusty-tutorial/
-[keyboard]: resources/spectrusty.png
+[keyboard]: resources/keyboard48.jpg
 [Rust]: https://www.rust-lang.org/
 [Cargo]: https://crates.io/
 [RUSTUP]: https://www.rust-lang.org/learn/get-started#installing-rust
