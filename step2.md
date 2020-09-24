@@ -34,6 +34,8 @@ The solution is a Bandwidth-Limited Pulse Buffer (`BLEP`). If you want to know t
 
 ### Synthesizing
 
+![synthesize](synth.jpg)
+
 With SPECTRUSTY to generate audio samples, follow these steps for each frame:
 
 1. add some amplitude steps to the `BLEP` that correspond to the `EAR/MIC` line changes (or other sources),
