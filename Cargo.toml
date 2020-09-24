@@ -10,7 +10,7 @@ readme = "README.md"
 license = "BlueOak-1.0.0"
 include = ["/src/", "/TUTORIAL_STEP*.md", "/README.md"]
 description = """
-Demonstrates step by step, the concepts of the SPECTRUSTY library.
+Examples for the tutorial on how to build emulators with the SPECTRUSTY library.
 """
 
 [dependencies]
