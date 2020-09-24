@@ -197,7 +197,7 @@ spectrusty = { version = "0.1", features = ["audio", "cpal"] } # or "sdl2"
 
 providing the complete carousel solutions for [cpal] audio layer or [SDL2].
 
-I won’t go into details on how to implement the carousel for any particular framework, because a quick look to the spectrusty-audio::host should reveal all its secrets.
+I won’t go into details on how to implement the carousel for any particular framework, because a quick look to the [spectrusty-audio::host] should reveal all its secrets.
 
 
 ### Example
