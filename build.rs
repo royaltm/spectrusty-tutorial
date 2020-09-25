@@ -4,7 +4,7 @@ use std::io::ErrorKind;
 use std::fs::OpenOptions;
 
 const ROMS_DIR: &str = concat!(env!("CARGO_MANIFEST_DIR"), r"/resources/roms");
-const ROMS_URL: &str = "https://raw.githubusercontent.com/royaltm/spectrusty/master/examples/resources/roms/{{name}}";
+const ROMS_URL: &str = "https://github.com/royaltm/spectrusty/raw/master/resources/roms/{{name}}";
 
 type DynResult<T> = Result<T, Box<dyn Error>>;
 
@@ -30,7 +30,8 @@ fn fetch_file(name: &str) -> DynResult<()> {
                                         })? {
         let url = ROMS_URL.replace("{{name}}", name);
         println!("cargo:warning=fetching: {}", url);
-        let mut resp = reqwest::blocking::get(&url)?;
+        let mut resp = reqwest::blocking::get(&url)?
+                                .error_for_status()?;
         resp.copy_to(&mut file)?;
     }
     Ok(())
