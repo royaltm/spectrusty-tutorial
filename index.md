@@ -6,15 +6,15 @@ SPECTRUSTY Tutorial
 [![S P E C T R U S T Y][SPECTRUSTY img]][SPECTRUSTY]
 
 [SPECTRUSTY] is a set of components designed in a way that mimics Spectrum's hardware parts and peripherals.
-The components are [structs] and [enums] that can interact with each other using Rust's [trait system]. They are often composed of [generic types] when more than one sub-component of a kind can be used.
+The components are [structs] and [enums] that are often having [generic types] in their definitions. Every such a generic stand-in needs to be substituted by the concrete sub-component. Functions of components are realized via Rust's [trait system].
 
 In SPECTRUSTY, the base part of the emulated computer is its control chip (e.g. [Ula] or [Ula128]).
 Here is the list of the most important traits:
 
 - [ControlUnit] to execute Z80 code via [Cpu] and access peripheral devices;
 - [FrameState] to access the clock counters;
-- [MemoryAccess] and [ZxMemory] to be able to modify or read the content of the emulated memory;
-- [KeyboardInterface] to be able to change the state of the Spectrum's keyboard;
+- [MemoryAccess] and [ZxMemory] to modify or read the content of the emulated memory;
+- [KeyboardInterface] to change the state of the Spectrum's keyboard;
 - [MicOut] to read signal from MIC OUT lines;
 - [EarIn] to feed the EAR IN lines with external input;
 - [EarMicOutAudioFrame] and [EarInAudioFrame] to help generating sound from EAR IN/OUT and MIC OUT lines;
