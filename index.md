@@ -13,7 +13,7 @@ Here is the list of the most important traits:
 
 - [ControlUnit] to execute Z80 code via [Cpu] and access peripheral devices;
 - [FrameState] to access the clock counters;
-- [MemoryAccess] and [ZxMemory] to modify or read the content of the emulated memory;
+- [MemoryAccess] and [ZxMemory] to modify or read the content of the emulator's memory;
 - [KeyboardInterface] to change the state of the Spectrum's keyboard;
 - [MicOut] to read signal from MIC OUT lines;
 - [EarIn] to feed the EAR IN lines with external input;
