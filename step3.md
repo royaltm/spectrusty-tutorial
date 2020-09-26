@@ -3,6 +3,8 @@ SPECTRUSTY Tutorial
 
 This is a part of the [tutorial] for the [SPECTRUSTY] library.
 
+![Step 3](ingame-step3.png)
+
 Step 3 - R Tape loading error
 -----------------------------
 
@@ -340,6 +342,8 @@ Let's look into the `info` method then, it should be self-explanatory:
 ```
 
 You may now officially `SAVE` and `LOAD` bytes and programs from the TAP files.
+
+![Step 3](loading-step3.png)
 
 But these games can load for so many minutes. I remember waiting patiently, fingers crossed, fearing the dread of the `R Tape Loading Error`. Today we don't have such a luxury, time flies differently, so it seems.
 
@@ -705,6 +709,8 @@ With the final touch, you may update the `info` method to show the status of the
 ```
 
 Aaaand it's done. You may now enjoy some ZX Spectrum software not written exclusively by you in your emulator.
+
+![Step 3](finish-step3.png)
 
 
 ### Example

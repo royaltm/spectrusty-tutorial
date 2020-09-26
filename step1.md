@@ -3,7 +3,7 @@ SPECTRUSTY Tutorial
 
 This is a part of the [tutorial] for the [SPECTRUSTY] library.
 
-![Step 1](example-step1.jpg)
+![Step 1](example-step1.png)
 
 Step 1 - Baby steps
 -------------------
@@ -222,7 +222,7 @@ Assuming you have taken care of the host environment, this is enough to run your
 
 ### Some entropy
 
-![Entropy](entropy-step1.jpg)
+![Entropy](entropy-step1.png)
 
 To make your Spectrum feel slightly more real, let's initialize its memory with some randomness at boot time.
 
