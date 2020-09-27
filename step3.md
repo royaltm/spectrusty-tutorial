@@ -418,8 +418,8 @@ The property `paused` will determine if the emulation is paused or if it's runni
 For the TURBO mode, create a new method:
 
 ```rust
-    // run frames as fast as possible until a single frame duration passes in real-time
-    // or if the turbo state ends automatically
+    // run frames as fast as possible until a single frame duration passes
+    // in real-time or if the turbo state ends automatically
     fn run_frames_accelerated(
             &mut self,
             time_sync: &mut ThreadSyncTimer
