@@ -50,7 +50,9 @@ use spectrusty::chip::{
     ula::Ula
 };
 // yes, the highlight of our imports
-use spectrusty::formats::tap::{read_tap_pulse_iter, TapChunkRead, TapChunkInfo};
+use spectrusty::formats::tap::{
+    read_tap_pulse_iter, TapChunkRead, TapChunkInfo
+};
 // with some sugar on top
 use spectrusty::utils::{
     tap::{Tape, Tap},
@@ -90,8 +92,10 @@ impl<C: Cpu> ZxSpectrumModel<C>
 {
     fn into_cpu_and_state(self) -> (C, EmulatorState) {
         match self {
-            ZxSpectrumModel::Spectrum16(spec16) => (spec16.cpu, spec16.state),
-            ZxSpectrumModel::Spectrum48(spec48) => (spec48.cpu, spec48.state),
+            ZxSpectrumModel::Spectrum16(spec16) =>
+                                       (spec16.cpu, spec16.state),
+            ZxSpectrumModel::Spectrum48(spec48) =>
+                                       (spec48.cpu, spec48.state),
         }        
     }
 
@@ -106,8 +110,10 @@ impl<C: Cpu> ZxSpectrumModel<C>
             _ => {}
         }
         match request {
-            ModelReq::Spectrum16 => Spectrum16(ZxSpectrum16k::<C>::from(self)),
-            ModelReq::Spectrum48 => Spectrum48(ZxSpectrum48k::<C>::from(self))
+            ModelReq::Spectrum16 => Spectrum16(
+                                        ZxSpectrum16k::<C>::from(self)),
+            ModelReq::Spectrum48 => Spectrum48(
+                                        ZxSpectrum48k::<C>::from(self))
         }
     }
 }
@@ -142,7 +148,8 @@ For the sake of simplicity, we'll get the TAP file name from the first command a
 ```rust
 fn main() -> Result<()> {
     // initialize logger
-    simple_logger::SimpleLogger::new().with_level(log::LevelFilter::Debug).init()?;
+    simple_logger::SimpleLogger::new()
+                  .with_level(log::LevelFilter::Debug).init()?;
 
     let mut args = std::env::args().skip(1);
     // parsing the 1st command argument as path to the TAP file
@@ -155,8 +162,10 @@ fn main() -> Result<()> {
     if let Some(file_name) = tap_file_name {
         info!("Loading TAP file: {}", file_name);
         // open the .tap file for reading and writing
-        let tap_file = OpenOptions::new().read(true).write(true).create(true)
-                       .open(file_name)?;
+        let tap_file = OpenOptions::new().read(true)
+                                         .write(true)
+                                         .create(true)
+                                         .open(file_name)?;
         // wrap the file into the TapChunkPulseIter
         let iter_pulse = read_tap_pulse_iter(tap_file);
         spec16.state.tape.tap = Some(Tap::Reader(iter_pulse));
@@ -184,7 +193,7 @@ That's it, for starters. Next, we need to extend the `run_frame` method so the T
         if let Some(ref mut writer) = self.tape.recording_tap() {
             // extract the MIC OUT state changes as a pulse iterator
             let pulses_iter = self.ula.mic_out_pulse_iter();
-            // decode the pulses as TAPE data and write it as a TAP chunk fragment
+            // decode pulses as TAPE data and write it as a TAP chunk
             let chunks = writer.write_pulses_as_tap_chunks(pulses_iter)?;
             if chunks != 0 {
                 info!("Saved: {} TAP chunks", chunks);
@@ -194,8 +203,8 @@ That's it, for starters. Next, we need to extend the `run_frame` method so the T
         let mut state_changed = false;
         // get the reader if the tape is inserted and is being played
         if let Some(ref mut feeder) = self.tape.playing_tap() {
-            // clean up the internal buffers of ULA so we won't append the EAR IN data
-            // to the previous frame's data
+            // clean up the internal buffers of ULA so we won't append
+            // the EAR IN data to the previous frame's data
             self.ula.ensure_next_frame();
             // check if any pulse is still left in the feeder
             let mut feeder = feeder.peekable();
@@ -246,17 +255,26 @@ Well... here it is, a modified version of the `render_audio` method:
 
 ```rust
     // adds pulse steps to the `blep` and returns the number of samples ready to be produced.
-    fn render_audio<B: Blep<SampleDelta=BlepDelta>>(&mut self, blep: &mut B) -> usize {
-        // (1) add some amplitude steps to the BLEP that correspond to the EAR/MIC line changes
+    fn render_audio<B: Blep<SampleDelta=BlepDelta>>(
+            &mut self, blep: &mut B
+        ) -> usize
+    {
+        // (1) add some amplitude steps to the BLEP that correspond to
+        // the EAR/MIC line changes
         if self.state.audible_tape {
             // render both EAR/MIC OUT channel
-            self.ula.render_earmic_out_audio_frame::<EarMicAmps4<BlepDelta>>(blep, 0);
+            self.ula.render_earmic_out_audio_frame::<
+                EarMicAmps4<BlepDelta>
+            >(blep, 0);
             // and the EAR IN channel
-            self.ula.render_ear_in_audio_frame::<EarInAmps2<BlepDelta>>(blep, 0);
+            self.ula.render_ear_in_audio_frame::<EarInAmps2<BlepDelta>>(
+                                                                blep, 0);
         }
         else {
             // render only EAR OUT channel
-            self.ula.render_earmic_out_audio_frame::<EarOutAmps4<BlepDelta>>(blep, 0);
+            self.ula.render_earmic_out_audio_frame::<
+                EarOutAmps4<BlepDelta>
+            >(blep, 0);
         }
         // (2) finalize the BLEP frame
         self.ula.end_audio_frame(blep)
@@ -297,12 +315,18 @@ Where `get_user_input_request` is a hypothetical UI event handler with the signa
 The method `update_on_user_request` could be implemented like this:
 
 ```rust
-    fn update_on_user_request(&mut self, input: InputRequest) -> Result<Option<Action>> {
+    fn update_on_user_request(
+            &mut self,
+            input: InputRequest
+        ) -> Result<Option<Action>>
+    {
         use InputRequest::*;
         match input {
             Exit            => return Ok(Some(Action::Exit)),
-            Spectrum16      => return Ok(Some(Action::ChangeModel(ModelReq::Spectrum16))),
-            Spectrum48      => return Ok(Some(Action::ChangeModel(ModelReq::Spectrum48))),
+            Spectrum16      => return Ok(Some(Action::ChangeModel(
+                                                ModelReq::Spectrum16))),
+            Spectrum48      => return Ok(Some(Action::ChangeModel(
+                                                ModelReq::Spectrum48))),
             HardReset       => self.reset(true),
             SoftReset       => self.reset(false),
             TriggerNmi      => { self.trigger_nmi(); }
@@ -312,8 +336,12 @@ The method `update_on_user_request` could be implemented like this:
             TapeStop        => { self.state.tape.stop(); }
             TapePrevBlock   => { self.state.tape.rewind_prev_chunk()?; }
             TapeNextBlock   => { self.state.tape.forward_chunk()?; }
-            TapeAudible     => { self.state.audible_tape = !self.state.audible_tape; }
-            TapeFlashLoad   => { self.state.flash_tape = !self.state.flash_tape; }
+            TapeAudible     => {
+                self.state.audible_tape = !self.state.audible_tape;
+            }
+            TapeFlashLoad   => {
+                self.state.flash_tape = !self.state.flash_tape;
+            }
         }
         Ok(None)
     }
@@ -323,7 +351,8 @@ Let's then implement the `info` method that returns a status string. It should b
 
 ```rust
     fn info(&mut self) -> Result<String> {
-        let mut info = format!("ZX Spectrum {}k", self.ula.memory_ref().ram_ref().len() / 1024);
+        let mut info = format!("ZX Spectrum {}k",
+                            self.ula.memory_ref().ram_ref().len() / 1024);
         // is the TAPE running?
         let running = self.tape.running;
         // is there any TAPE inserted at all?
@@ -331,19 +360,22 @@ Let's then implement the `info` method that returns a status string. It should b
             // we'll show if the TAP sound is audible
             let audible = if self.audible_tape { '🔊' } else { '🔈' };
             match tap {
-                Tap::Reader(..) if running => write!(info, " 🖭 {} ⏵", audible)?,
-                Tap::Writer(..) if running => write!(info, " 🖭 {} ⏺", audible)?,
+                Tap::Reader(..) if running =>
+                                write!(info, " 🖭 {} ⏵", audible)?,
+                Tap::Writer(..) if running =>
+                                write!(info, " 🖭 {} ⏺", audible)?,
                 tap => {
-                    // The TAPE is paused so we'll show some TAP block metadata.
+                    // TAPE is paused so we'll show some TAP block metadata
                     let mut rd = tap.try_reader_mut()?;
-                    // `rd` when dropped will restore underlying file cursor position,
-                    // so it's perfectly save to use it to read the metadata of
-                    // the current chunk.
+                    // `rd` when dropped will restore underlying file
+                    // cursor position, so it's perfectly save to use it to
+                    // read the metadata of the current chunk.
                     let chunk_no = rd.rewind_chunk()?;
                     let chunk_info = TapChunkInfo::try_from(rd.get_mut())?;
                     // restore cursor position
                     rd.done()?;
-                    write!(info, " 🖭 {} {}: {}", audible, chunk_no, chunk_info)?;
+                    write!(info, " 🖭 {} {}: {}",
+                                    audible, chunk_no, chunk_info)?;
                 }
             }
         }
@@ -382,7 +414,7 @@ struct EmulatorState {
 
 The property `paused` will determine if the emulation is paused or if it's running. The `turbo` property will control the TURBO mode - if it's ON frames are run as fast as possible without any synchronization. Another `flash_tape` property will control our new FLASH TAPE LOAD and SAVE feature. I'll explain it a little bit later. For now, let's focus on the TURBO mode and the ability to PAUSE your emulator.
 
-Fo the TURBO mode, create a new method:
+For the TURBO mode, create a new method:
 
 ```rust
     // run frames as fast as possible until a single frame duration passes in real-time
@@ -420,8 +452,8 @@ Additionally, we'll make the TURBO mode end automatically whenever the TAPE play
             //... ✂
         }
 
-        // clean up the internal buffers of ULA so we won't append the EAR IN data
-        // to the previous frame's data
+        // clean up the internal buffers of ULA so we won't append the
+        // EAR IN data to the previous frame's data
         self.ula.ensure_next_frame();
         // and we also need the timestamp of the beginning of a frame
         let fts_start = self.ula.current_tstate();
@@ -455,7 +487,7 @@ Additionally, we'll make the TURBO mode end automatically whenever the TAPE play
 So the next logical step would be to apply some changes to the main emulator loop to actually handle the TURBO mode and the ability to PAUSE your Spectrum.
 
 ```rust
-    // we need to change its signature, so we may share the `sync` instance.
+    // we need to change its signature, so we may share the `sync` instance
     fn synchronize_frame(sync: &mut ThreadSyncTimer) {
         if let Err(missed) = sync.synchronize_thread_to_frame() {
             debug!("*** paused for: {} frames ***", missed);
@@ -475,7 +507,8 @@ So the next logical step would be to apply some changes to the main emulator loo
                     Some(InputRequest::Exit) => { break 'main; }
                     _ => {}
                 }
-                // just rest a little bit, don't eat too much hosts' CPU cycles while paused
+                // just rest a little bit, don't eat too much hosts' CPU
+                // cycles while paused
                 std::thread::sleep(std::time::Duration::from_millis(100));
             }
             spectrum.state.paused = false;
@@ -497,13 +530,14 @@ So the next logical step would be to apply some changes to the main emulator loo
         }
 
         let (video_buffer, pitch) = acquire_video_buffer(width, height);
-        spectrum.render_video::<SpectrumPalRGB24>(video_buffer, pitch, border);
-
+        spectrum.render_video::<SpectrumPalRGB24>(
+                                video_buffer, pitch, border);
         update_display();
 
         if state_changed {
             if spectrum.state.turbo || spectrum.state.paused {
-                // we won't be rendering audio when in TURBO mode or when PAUSED
+                // we won't be rendering audio when in TURBO mode
+                // or when PAUSED
                 audio.pause();
             }
             else {
@@ -516,7 +550,8 @@ So the next logical step would be to apply some changes to the main emulator loo
             // no audio in TURBO mode or when PAUSED
             spectrum.render_audio(blep);
             // (3) render the BLEP frame as audio samples
-            produce_audio_frame(audio.channels(), audio.frame_buffer(), &mut blep);
+            produce_audio_frame(
+                    audio.channels(), audio.frame_buffer(), &mut blep);
             // somehow play the rendered buffer
             audio.play_frame()?;
             // (4) prepare the BLEP for the next frame.
@@ -532,7 +567,11 @@ So the next logical step would be to apply some changes to the main emulator loo
 Let's not forget about TURBO and PAUSE features in the user input handler:
 
 ```rust
-    fn update_on_user_request(&mut self, input: InputRequest) -> Result<Option<Action>> {
+    fn update_on_user_request(
+            &mut self,
+            input: InputRequest
+        ) -> Result<Option<Action>>
+    {
         //... ✂
             ToggleTurbo     => { self.state.turbo = !self.state.turbo; }
             TogglePaused    => { self.state.paused = true; }
@@ -570,8 +609,8 @@ So here's our final `run_frame`:
                 (self.state.flash_tape || self.state.turbo) {
             self.auto_detect_load_from_tape()?;
         }
-        // clean up the internal buffers of ULA so we won't append the EAR IN data
-        // to the previous frame's data
+        // clean up the internal buffers of ULA so we won't append the
+        // EAR IN data to the previous frame's data
         self.ula.ensure_next_frame();
         // and we also need the timestamp of the beginning of a frame
         let fts_start = self.ula.current_tstate();
@@ -599,12 +638,14 @@ So here's our final `run_frame`:
         if let Some(ref mut writer) = self.state.tape.recording_tap() {
             // extract the MIC OUT state changes as a pulse iterator
             let pulses_iter = self.ula.mic_out_pulse_iter();
-            // decode the pulses as TAPE data and write it as a TAP chunk fragment
+            // decode pulses as TAPE data and write it as a TAP chunk
             let chunks = writer.write_pulses_as_tap_chunks(pulses_iter)?;
             if chunks != 0 {
                 info!("Saved: {} TAP chunks", chunks);
             }
-            if self.state.flash_tape && !self.state.turbo || self.state.turbo {
+            if self.state.flash_tape && !self.state.turbo ||
+                                         self.state.turbo
+            {
                 // is the state of the pulse decoder idle?
                 self.state.turbo = !writer.get_ref().is_idle();
             }
@@ -646,7 +687,7 @@ Next is the part where we feed the `EAR IN` line from the TAPE pulses. This meth
 And last but not least is the function for detecting if the TAPE should play or stop playing.
 
 ```rust
-    // very simple heuristics for detecting if spectrum needs some TAPE data
+    // simple heuristics for detecting if spectrum needs some TAPE data
     fn auto_detect_load_from_tape(&mut self) -> Result<()> {
         let count = self.ula.read_ear_in_count();
         if count != 0 {
@@ -661,8 +702,9 @@ And last but not least is the function for detecting if the TAPE should play or 
                 }
             }
             // if flash loading is enabled and a tape isn't running
-            else if self.state.flash_tape && self.state.tape.is_inserted() &&
-                   !self.state.tape.running {
+            else if self.state.flash_tape && self.state.tape.is_inserted()
+                    && !self.state.tape.running
+            {
                 const PROBE_THRESHOLD: u32 = 1000;
                 // play the tape and speed up
                 // if the EAR IN probing exceeds the threshold
@@ -688,7 +730,8 @@ As the final touch, you may update the `info` method to show the status of the n
 
 ```rust
     fn info(&mut self) -> Result<String> {
-        let mut info = format!("ZX Spectrum {}k", self.ula.memory_ref().ram_ref().len() / 1024);
+        let mut info = format!("ZX Spectrum {}k",
+                            self.ula.memory_ref().ram_ref().len() / 1024);
         if self.state.paused {
             info.push_str(" ⏸ ");
         }
@@ -703,19 +746,22 @@ As the final touch, you may update the `info` method to show the status of the n
             // we'll show if the TAP sound is audible
             let audible = if self.state.audible_tape { '🔊' } else { '🔈' };
             match tap {
-                Tap::Reader(..) if running => write!(info, " 🖭{}{} ⏵", flash, audible)?,
-                Tap::Writer(..) if running => write!(info, " 🖭{}{} ⏺", flash, audible)?,
+                Tap::Reader(..) if running =>
+                                write!(info, " 🖭{}{} ⏵", flash, audible)?,
+                Tap::Writer(..) if running =>
+                                write!(info, " 🖭{}{} ⏺", flash, audible)?,
                 tap => {
-                    // The TAPE is paused so we'll show some TAP block metadata.
+                    // TAPE is paused so we'll show some TAP block metadata
                     let mut rd = tap.try_reader_mut()?;
-                    // `rd` when dropped will restore underlying file cursor position,
-                    // so it's perfectly save to use it to read the metadata of
-                    // the current chunk.
+                    // `rd` when dropped will restore underlying file
+                    // cursor position, so it's perfectly save to use it to
+                    // read the metadata of the current chunk.
                     let chunk_no = rd.rewind_chunk()?;
                     let chunk_info = TapChunkInfo::try_from(rd.get_mut())?;
                     // restore cursor position
                     rd.done()?;
-                    write!(info, " 🖭{}{} {}: {}", flash, audible, chunk_no, chunk_info)?;
+                    write!(info, " 🖭{}{} {}: {}",
+                                    flash, audible, chunk_no, chunk_info)?;
                 }
             }
         }

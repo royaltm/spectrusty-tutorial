@@ -129,9 +129,13 @@ fn main() -> Result<()> {
 
         spectrum.run_frame();
 
-        let (width, height) = <UlaPAL<Memory16k> as Video>::render_size_pixels(border);
+        let (width, height) =
+            <UlaPAL<Memory16k> as Video>::render_size_pixels(border);
         let (video_buffer, pitch) = acquire_video_buffer(width, height);
-        spectrum.render_video::<SpectrumPalRGB24>(video_buffer, pitch, border);
+        spectrum.render_video::<SpectrumPalRGB24>(
+            video_buffer,
+            pitch,
+            border);
 
         update_display();
 
@@ -162,8 +166,8 @@ impl<C: Cpu, M: ZxMemory> ZxSpectrum<C, M> {
         let keymap = update_keys( self.ula.get_key_state() );
         self.ula.set_key_state(keymap);
     }
-    // this one looks very simple, however we will add more to this function later
-    // so let's not give up on it yet.
+    // this one looks very simple, however we will add more to this
+    // function later so let's not give up on it yet.
     fn run_frame(&mut self) {
         self.ula.execute_next_frame(&mut self.cpu);
     }
@@ -204,7 +208,8 @@ fn main() -> Result<()> {
     //... ✂
     //... later in main()
 
-    let frame_duration_nanos = <UlaPAL<Memory16k> as HostConfig>::frame_duration_nanos();
+    let frame_duration_nanos =
+        <UlaPAL<Memory16k> as HostConfig>::frame_duration_nanos();
     let mut sync = ThreadSyncTimer::new(frame_duration_nanos);
     let mut synchronize_frame = || {
         if let Err(missed) = sync.synchronize_thread_to_frame() {
@@ -270,7 +275,8 @@ fn run<C: Cpu, M: ZxMemory>(
     let HostEnvironment { border, ... } = env;
     let (width, height) = <Ula<M> as Video>::render_size_pixels(border);
 
-    let mut sync = ThreadSyncTimer::new(UlaPAL::<M>::frame_duration_nanos());
+    let mut sync = ThreadSyncTimer::new(
+                    UlaPAL::<M>::frame_duration_nanos());
     let mut synchronize_frame = || {
         if let Err(missed) = sync.synchronize_thread_to_frame() {
             println!("*** paused for: {} frames ***", missed);
@@ -351,14 +357,18 @@ impl<C: Cpu> ZxSpectrumModel<C> {
     }
     fn as_mem_ref(&self) -> &[u8] {
         match self {
-            ZxSpectrumModel::Spectrum16(spec16) => spec16.ula.memory_ref().mem_ref(),
-            ZxSpectrumModel::Spectrum48(spec48) => spec48.ula.memory_ref().mem_ref(),
+            ZxSpectrumModel::Spectrum16(spec16) =>
+                    spec16.ula.memory_ref().mem_ref(),
+            ZxSpectrumModel::Spectrum48(spec48) =>
+                    spec48.ula.memory_ref().mem_ref(),
         }
     }
     fn border_color(&self) -> u8  {
         match self {
-            ZxSpectrumModel::Spectrum16(spec16) => spec16.ula.border_color(),
-            ZxSpectrumModel::Spectrum48(spec48) => spec48.ula.border_color(),
+            ZxSpectrumModel::Spectrum16(spec16) =>
+                            spec16.ula.border_color(),
+            ZxSpectrumModel::Spectrum48(spec48) =>
+                            spec48.ula.border_color(),
         }
     }
     // hot-swap hardware models

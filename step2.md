@@ -75,7 +75,8 @@ fn main() -> Result<()> {
 
     // first let's get an instance of some audio device implementation
     let audio = create_audio();
-    // second the Bandwidth-Limited Pulse Buffer implementation with a single channel
+    // second the Bandwidth-Limited Pulse Buffer implementation with
+    // a single channel
     let mut blep = BandLimited::<BlepDelta>::new(1);
     // we need a sample frequency of the audio output
     let sample_rate: u32 = audio.sample_rate().into();
@@ -98,14 +99,16 @@ fn run<C: Cpu, M: ZxMemory>(
         spectrum.run_frame();
 
         let (video_buffer, pitch) = acquire_video_buffer(width, height);
-        spectrum.render_video::<SpectrumPalRGB24>(video_buffer, pitch, border);
+        spectrum.render_video::<SpectrumPalRGB24>(
+                                        video_buffer, pitch, border);
         // (1) and (2)
         spectrum.render_audio(&mut blep);
 
         update_display();
 
         // (3) render the BLEP frame as audio samples
-        produce_audio_frame(audio.channels(), audio.frame_buffer(), &mut blep);
+        produce_audio_frame(
+            audio.channels(), audio.frame_buffer(), &mut blep);
         // somehow play the rendered buffer
         audio.play_frame()?;
 
@@ -127,8 +130,11 @@ impl<C: Cpu, M: ZxMemory> ZxSpectrum<C, M> {
             blep: &mut B
         ) -> usize
     {
-        // (1) add some amplitude steps to the BLEP that correspond to the EAR/MIC line changes
-        self.ula.render_earmic_out_audio_frame::<EarMicAmps4<BlepDelta>>(blep, 0);
+        // (1) add some amplitude steps to the BLEP that correspond to
+        // the EAR/MIC line changes
+        self.ula.render_earmic_out_audio_frame::<EarMicAmps4<BlepDelta>>(
+            blep,
+            0);
         // (2) finalize the BLEP frame
         self.ula.end_audio_frame(blep)
     }
@@ -165,7 +171,9 @@ fn produce_audio_frame<T: AudioSample + FromSample<BlepDelta>>(
     // ensure the size of the audio frame buffer is exactly as we need it
     outbuf.resize(frame_sample_count * output_channels, T::silence());
     // render each sample
-    for (chans, sample) in outbuf.chunks_mut(output_channels).zip(sample_iter) {
+    for (chans, sample) in outbuf.chunks_mut(output_channels)
+                                 .zip(sample_iter)
+    {
         // write sample to each channel
         for p in chans.iter_mut() {
             *p = sample;
