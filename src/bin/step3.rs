@@ -264,8 +264,12 @@ impl<C: Cpu, M: ZxMemory> ZxSpectrum<C, M> {
     }
 
     // run frames as fast as possible until a single frame duration passes in real-time
-    // or if turbo state ends automatically
-    fn run_frames_accelerated(&mut self, time_sync: &mut ThreadSyncTimer) -> Result<(FTs, bool)> {
+    // or if the turbo state ends automatically
+    fn run_frames_accelerated(
+            &mut self,
+            time_sync: &mut ThreadSyncTimer
+        ) -> Result<(FTs, bool)>
+    {
         let mut sum: FTs = 0;
         let mut state_changed = false;
         while time_sync.check_frame_elapsed().is_none() {
