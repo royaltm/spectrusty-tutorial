@@ -242,7 +242,7 @@ Triggering NMI takes a few CPU cycles. If we were triggering NMI before we use t
 Another reason for this - and this is not strictly emulation related but is also an issue with the real Z80 - is that triggering NMI will fail if the executed instruction was one of the `0xDD`, `0xFD` prefixes or the `EI` instruction. If you'd fill the whole memory with one of these instructions, you'll never be able to trigger the Non-Maskable Interrupt. That's why the [Cpu::nmi] method returns a boolean indicating if it succeeded. And `nmi_request` is being cleared only when triggering of the NMI is successful.
 
 I have mentioned something about the ability to hear the playback of the TAPE, haven't I?
-Well... here it is, this time only a slightly modified version of the `render_audio` method:
+Well... here it is, a modified version of the `render_audio` method:
 
 ```rust
     // adds pulse steps to the `blep` and returns the number of samples ready to be produced.
@@ -267,7 +267,7 @@ If `audible_tape` is `true` the user should hear the tape sound when we `LOAD` o
 
 When the `audible_tape` option is `true`, the user should hear sound from the tape, should it be played or recorded to. Otherwise, beeper sound (EAR OUT) alone is being emitted.
 
-The only thing missing is the ability to allow the user to control the TAPE somehow. We can add something like this inside the run loop:
+Yet, we still need to allow the user to control the TAPE somehow. We can add something like this inside the run loop:
 
 ```rust
     while is_running() {
@@ -766,6 +766,7 @@ Back to [index][tutorial].
 [From]: https://doc.rust-lang.org/std/convert/trait.From.html
 [ControlUnit]: https://docs.rs/spectrusty/*/spectrusty/chip/trait.ControlUnit.html
 [ControlUnit::ensure_next_frame]: https://docs.rs/spectrusty/*/spectrusty/chip/trait.ControlUnit.html#tymethod.ensure_next_frame
+[ControlUnit::execute_next_frame]: https://docs.rs/spectrusty/*/spectrusty/chip/trait.ControlUnit.html#tymethod.execute_next_frame
 [ControlUnit::nmi]: https://docs.rs/spectrusty/*/spectrusty/chip/trait.ControlUnit.html#tymethod.nmi
 [Cpu::nmi]: https://docs.rs/z80emu/*/z80emu/trait.Cpu.html#tymethod.nmi
 [this implementation]: https://github.com/royaltm/spectrusty/blob/master/examples/zxspectrum-common/src/spectrum.rs#L283
