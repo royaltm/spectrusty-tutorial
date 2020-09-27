@@ -214,6 +214,7 @@ That's it, for starters. Next, we need to extend the `run_frame` method so the T
 
         if self.nmi_request {
             if self.ula.nmi(&mut self.cpu) {
+                // clear nmi_request only if the triggering succeeded
                 self.nmi_request = false;
             }
         }
@@ -226,7 +227,7 @@ That's it, for starters. Next, we need to extend the `run_frame` method so the T
 
 That's... a lot of things there. The good thing is, we had a dedicated function for that. Whew!
 
-And you can also see now what the `nmi_request` was for. We also need to change the implementation of:
+And you can also see now what the `nmi_request` was for. We also need to change the implementation of the method:
 
 ```rust
     fn trigger_nmi(&mut self) {
@@ -234,10 +235,14 @@ And you can also see now what the `nmi_request` was for. We also need to change 
     }
 ```
 
-But you may ask why? The answer won't be short, if you honestly don't care you may skip to the next paragraph. This method is now refactored in a way that the first part requires, that the previous frame's MIC data is still available. Triggering NMI takes a few CPU cycles. If we were to do it before we call this method (as was implemented before), we'll be losing this data because the `trigger_nmi` will wrap the current frame and clear all temporary buffers. This happens not because triggering NMI is somehow special, but because we are at the very end of the previous frame when the `trigget_nmi` is being invoked. All [ControlUnit] methods that forward the clock counter ensures that its value doesn't exceed some frame duration limit and calls [ControlUnit::ensure_next_frame] to conditionally prepare for the next frame. If we place the [ControlUnit::nmi] call just before the code is being executed it won't influence any side effects this way. Another funny thing is - and this is not strictly emulation related but is also an issue with the real Z80 - that the NMI won't be triggered if the executed instruction was one of the `0xDD`, `0xFD` prefixes or the `EI` instruction. If you'd fill the whole memory with one of these instructions, you'll never be able to trigger the Non-Maskable Interrupt. This is reflected in the return value from the [Cpu::nmi]. Triggering NMI may actually fail. That is why only when it returns `true` the `nmi_request` is being cleared.
+Why is this needed?
 
-I did mention something about the ability to hear the playback of the TAPE, didn't I?
-So... here it is, this time only a slightly modified version of the `render_audio` method:
+Triggering NMI takes a few CPU cycles. If we were triggering NMI before we use the MIC OUT data, we'd lose this data. It may happen not because triggering NMI is somehow special but because, when the `trigger_nmi` method was invoked, the T-state counter had been near the end of the previous frame. [ControlUnit] methods forwarding the cycle counter ensure that the counter value doesn't exceed its frame limit and conditionally invoke [ControlUnit::ensure_next_frame]. This method clears all temporary frame data. If instead, we insert the [ControlUnit::nmi] call just before [ControlUnit::execute_next_frame], it won't influence any side effects, as temporary data is being consumed beforehand.
+
+Another reason for this - and this is not strictly emulation related but is also an issue with the real Z80 - is that triggering NMI will fail if the executed instruction was one of the `0xDD`, `0xFD` prefixes or the `EI` instruction. If you'd fill the whole memory with one of these instructions, you'll never be able to trigger the Non-Maskable Interrupt. That's why the [Cpu::nmi] method returns a boolean indicating if it succeeded. And `nmi_request` is being cleared only when triggering of the NMI is successful.
+
+I have mentioned something about the ability to hear the playback of the TAPE, haven't I?
+Well... here it is, this time only a slightly modified version of the `render_audio` method:
 
 ```rust
     // adds pulse steps to the `blep` and returns the number of samples ready to be produced.
@@ -260,7 +265,9 @@ So... here it is, this time only a slightly modified version of the `render_audi
 
 If `audible_tape` is `true` the user should hear the tape sound when we `LOAD` or `SAVE`. If it's `false` only beeper sound can be heard.
 
-The only thing missing is the ability to allow the user to somehow control the TAPE. It could be implemented in the run loop with something like this:
+When the `audible_tape` option is `true`, the user should hear sound from the tape, should it be played or recorded to. Otherwise, beeper sound (EAR OUT) alone is being emitted.
+
+The only thing missing is the ability to allow the user to control the TAPE somehow. We can add something like this inside the run loop:
 
 ```rust
     while is_running() {
@@ -287,7 +294,7 @@ The only thing missing is the ability to allow the user to somehow control the T
 
 Where `get_user_input_request` is a hypothetical UI event handler with the signature: ```() -> Option<InputRequest>```, and the `display_info` will help the user to have a clear picture of what is happening with the TAP file.
 
-The `ZxSpectrum`'s method `update_on_user_request` might be similar to:
+The method `update_on_user_request` could be implemented like this:
 
 ```rust
     fn update_on_user_request(&mut self, input: InputRequest) -> Result<Option<Action>> {
@@ -312,7 +319,7 @@ The `ZxSpectrum`'s method `update_on_user_request` might be similar to:
     }
 ```
 
-Let's look into the `info` method then, it should be self-explanatory:
+Let's then implement the `info` method that returns a status string. It should be self-explanatory:
 
 ```rust
     fn info(&mut self) -> Result<String> {
@@ -328,12 +335,13 @@ Let's look into the `info` method then, it should be self-explanatory:
                 Tap::Writer(..) if running => write!(info, " 🖭 {} ⏺", audible)?,
                 tap => {
                     // The TAPE is paused so we'll show some TAP block metadata.
-                    // This creates a TapChunkRead trait implementation that when dropped
-                    // will restore underlying file seek position, so it's perfectly
-                    // save to use it to read the metadata of the current chunk.
                     let mut rd = tap.try_reader_mut()?;
+                    // `rd` when dropped will restore underlying file cursor position,
+                    // so it's perfectly save to use it to read the metadata of
+                    // the current chunk.
                     let chunk_no = rd.rewind_chunk()?;
                     let chunk_info = TapChunkInfo::try_from(rd.get_mut())?;
+                    // restore cursor position
                     rd.done()?;
                     write!(info, " 🖭 {} {}: {}", audible, chunk_no, chunk_info)?;
                 }
@@ -343,7 +351,7 @@ Let's look into the `info` method then, it should be self-explanatory:
     }
 ```
 
-You may now officially `SAVE` and `LOAD` bytes and programs from the TAP files.
+Finally, you may now `SAVE` and `LOAD` programs and code with the TAP files.
 
 ![Step 3](loading-step3.png)
 
