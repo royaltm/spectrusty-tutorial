@@ -254,7 +254,8 @@ I have mentioned something about the ability to hear the playback of the TAPE, h
 Well... here it is, a modified version of the `render_audio` method:
 
 ```rust
-    // adds pulse steps to the `blep` and returns the number of samples ready to be produced.
+    // adds pulse steps to the `blep` and returns the number of samples
+    // ready to be produced.
     fn render_audio<B: Blep<SampleDelta=BlepDelta>>(
             &mut self, blep: &mut B
         ) -> usize
