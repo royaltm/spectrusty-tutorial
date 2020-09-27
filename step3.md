@@ -362,7 +362,7 @@ Let's not dawdle then, and please follow me to the remaining part of this chapte
 
 ### Flash and Turbo
 
-For these new capabilities, your `EmulatorState` would need some new properties:
+For new capabilities, your `EmulatorState` needs new properties:
 
 ```rust
 #[derive(Default)]
@@ -380,14 +380,18 @@ struct EmulatorState {
 }
 ```
 
-The property `paused` will determine if the emulation is paused or is it running and `turbo` will indicate if the TURBO mode is on or off. Another new property `flash_tape` if `true` will enable our new FLASH TAPE LOAD and SAVE feature. I'll go into detail about it a little later in this chapter. For now, let's focus on the TURBO mode and the ability to PAUSE your emulator.
+The property `paused` will determine if the emulation is paused or if it's running. The `turbo` property will control the TURBO mode - if it's ON frames are run as fast as possible without any synchronization. Another `flash_tape` property will control our new FLASH TAPE LOAD and SAVE feature. I'll explain it a little bit later. For now, let's focus on the TURBO mode and the ability to PAUSE your emulator.
 
-Fo the TURBO mode to work, you need to create a new method for `ZxSpectrum`:
+Fo the TURBO mode, create a new method:
 
 ```rust
     // run frames as fast as possible until a single frame duration passes in real-time
-    // or if turbo state ends automatically
-    fn run_frames_accelerated(&mut self, time_sync: &mut ThreadSyncTimer) -> Result<(FTs, bool)> {
+    // or if the turbo state ends automatically
+    fn run_frames_accelerated(
+            &mut self,
+            time_sync: &mut ThreadSyncTimer
+        ) -> Result<(FTs, bool)>
+    {
         let mut sum: FTs = 0;
         let mut state_changed = false;
         while time_sync.check_frame_elapsed().is_none() {
@@ -404,7 +408,7 @@ Fo the TURBO mode to work, you need to create a new method for `ZxSpectrum`:
     }
 ```
 
-We also need to slightly change the `run_frame` method's signature and its implementation. Additionally to the flag, it has returned previously, it'll now return the number of T-states that our emulated CPU can grind while the code is being executed. This is not really needed to implement the TURBO mode, but it can be used to benchmark the emulator's performance. You might measure the wall time of the execution of this function and divide the `sum` returned from it by the wall time duration to estimate how fast your emulated Spectrum can run in T-states / time unit.
+We also need to slightly adjust the `run_frame` method's signature and its implementation. Additionally to the flag, it has returned previously, it'll now return the number of T-states that our emulated CPU can grind per each frame. This is not really needed to implement the TURBO mode, but it can be used to benchmark the emulator's performance. You might measure it by dividing the `sum` returned from it by the wall time duration of its execution. So you can estimate how fast your emulated Spectrum can run in T-states / time unit.
 
 Additionally, we'll make the TURBO mode end automatically whenever the TAPE playback ends.
 
@@ -536,7 +540,7 @@ Let's not forget about TURBO and PAUSE features in the user input handler:
     }
 ```
 
-When the TURBO mode is ON, it'll call `run_frames_accelerated` instead of `run_frame` and no audio will be rendered. While the emulator is `PAUSED` it'll run a simple inner loop, which just handles two conditions to either exit the main program loop or to resume from the paused state.
+When the TURBO mode is ON, it'll call `run_frames_accelerated` instead of `run_frame`, and no audio will be produced. While the emulator is `PAUSED`, it'll run a simple inner loop, which just handles two conditions to either exit the main program loop or to resume from the paused state.
 
 The TURBO mode can be changed by user `Action` or by one of the `run_` methods on certain conditions.
 
@@ -544,16 +548,16 @@ Speaking of conditions, we still have another feature to be taken care of: FLASH
 
 First, let me describe how I imagine it would work.
 
-When the feature is ON, whenever the user requests data from the TAPE by e.g. typing the `LOAD ""` command, the TAPE will automatically play and at the same time, the TURBO mode will be turned on automatically.
+When the feature is on, whenever the user requests data from the TAPE e.g. by typing the `LOAD ""` command, the TAPE will automatically play. At the same time, the TURBO mode will turn on automatically.
 
-Another condition triggering the TURBO mode would be if the user has started recoding and then typed `SAVE "name"` and pressed ENTER - TAPE pulses will start being emitted by Spectrum.
+Another condition triggering the TURBO mode would be if the user had started recording and then typed `SAVE "name"` and pressed ENTER. TAPE pulses will start being emitted by Spectrum.
 
 The conditions, to turn OFF the TURBO mode, would be either:
-* when the TAPE is playing and Spectrum no longer expects the `EAR IN` signal,
-* when the TAPE is playing and it ends,
-* when the TAPE is recording and the emitting of data signal ends.
+* when the TAPE is playing, and Spectrum no longer expects the `EAR IN` signal,
+* when the TAPE is playing, and it ends,
+* when the TAPE is recording, and the emitting of data signal ends.
 
-The good news is, for our FLASH TAPE implementation, we only need to make some changes in `run_frame`. However, I think it's time to split this method into smaller functions because it starts to become unreadable. Not only by human programmers. The Rust optimizer doesn't really like large functions.
+The good news is, for our FLASH TAPE implementation, we only need to make some changes in `run_frame`. However, I think it's time to split this method into smaller functions because it starts to become unreadable. Not only by human programmers. The Rust optimizer doesn't really like large function bodies.
 
 So here's our final `run_frame`:
 
@@ -610,7 +614,7 @@ So here's our final `run_frame`:
     }
 ```
 
-The above function not only writes the decoded MIC signal but also controls the state of the TURBO mode whenever the [pulse decoder] changes state from IDLE to any other state. Thus if the `flash_tape` is enabled it speeds up the recording and returns to normal speed when the recording finishes.
+The above function not only writes the decoded MIC OUT signal but also controls the state of the TURBO mode whenever the [pulse decoder] changes state from IDLE to any other. Thus if the `flash_tape` is enabled, it speeds up the recording and returns to standard speed when the recording finishes.
 
 Next is the part where we feed the `EAR IN` line from the TAPE pulses. This method returns `Ok(true)` if the TAPE has reached the end.
 
@@ -672,15 +676,15 @@ And last but not least is the function for detecting if the TAPE should play or 
     }
 ```
 
-The upside of this implementation is that we don't need to know anything about tape loading routines other than they eagerly probe the EAR IN line. So let's define some experimentally derived thresholds of the probing count per frame. If the count is above the PROBE threshold we assume the Spectrum software is waiting for the TAPE data and if it drops below the IDLE threshold we assume the TAPE data is no longer needed.
+The upside of this implementation is that we don't need to know anything about tape loading routines other than they eagerly probe the EAR IN line. So let's define some experimentally derived thresholds of the probing count per frame. If the count is above the PROBE threshold, we assume the Spectrum software is waiting for the TAPE data. And if it drops below the IDLE threshold, the TAPE data is no longer needed.
 
 The downside is that it may sometimes render some false-positive and false-negative results. But there is always plenty of room to improve this algorithm. The very first step would be to experiment with the threshold values.
 
-You may also check out [this implementation] which is a more sophisticated version of this method. As a bonus, it can also detect if the ROM loading routine is being called and loads data instantly.
+You may also check out [this implementation] that is a more sophisticated version of this method. As a bonus, it can also detect if the ROM loading routine is being called and loads data instantly.
 
-The SAVE detection is simpler but it solely depends on the ability of the TAP writer to decode pulses.
+The SAVE detection mechanism is less complex, but it solely depends on the ability of the TAP writer to decode pulses.
 
-With the final touch, you may update the `info` method to show the status of the new awesome features to the user.
+As the final touch, you may update the `info` method to show the status of the new features to the user.
 
 ```rust
     fn info(&mut self) -> Result<String> {
@@ -703,12 +707,13 @@ With the final touch, you may update the `info` method to show the status of the
                 Tap::Writer(..) if running => write!(info, " 🖭{}{} ⏺", flash, audible)?,
                 tap => {
                     // The TAPE is paused so we'll show some TAP block metadata.
-                    // This creates a TapChunkRead trait implementation that when dropped
-                    // will restore underlying file seek position, so it's perfectly
-                    // save to use it to read the metadata of the current chunk.
                     let mut rd = tap.try_reader_mut()?;
+                    // `rd` when dropped will restore underlying file cursor position,
+                    // so it's perfectly save to use it to read the metadata of
+                    // the current chunk.
                     let chunk_no = rd.rewind_chunk()?;
                     let chunk_info = TapChunkInfo::try_from(rd.get_mut())?;
+                    // restore cursor position
                     rd.done()?;
                     write!(info, " 🖭{}{} {}: {}", flash, audible, chunk_no, chunk_info)?;
                 }
@@ -718,7 +723,7 @@ With the final touch, you may update the `info` method to show the status of the
     }
 ```
 
-Aaaand it's done. You may now enjoy some ZX Spectrum software not written exclusively by you in your emulator.
+Aaaand it's done. You may now enjoy in your emulator some of ZX Spectrum software that wasn't written exclusively by you.
 
 ![Step 3](finish-step3.png)
 
@@ -736,10 +741,10 @@ and type `LOAD ""` to load the game.
 To create a new TAP file just give a name of a file that doesn't exist:
 
 ```sh
-cargo run --bin step3 --release -- resources/my_new.tap
+cargo run --bin step3 --release -- my_new.tap
 ```
 
-and you may actually `SAVE` your program this time.
+and you may actually `SAVE` your program this time, just select Tape -> Record from menu.
 
 
 ### Next
