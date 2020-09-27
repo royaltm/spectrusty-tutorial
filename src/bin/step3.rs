@@ -136,12 +136,13 @@ impl<C: Cpu, M: ZxMemory> ZxSpectrum<C, M> {
                 Tap::Writer(..) if running => write!(info, " 🖭{}{} ⏺", flash, audible)?,
                 tap => {
                     // The TAPE is paused so we'll show some TAP block metadata.
-                    // This creates a TapChunkRead trait implementation that when dropped
-                    // will restore underlying file seek position, so it's perfectly
-                    // save to use it to read the metadata of the current chunk.
                     let mut rd = tap.try_reader_mut()?;
+                    // `rd` when dropped will restore underlying file cursor position,
+                    // so it's perfectly save to use it to read the metadata of
+                    // the current chunk.
                     let chunk_no = rd.rewind_chunk()?;
                     let chunk_info = TapChunkInfo::try_from(rd.get_mut())?;
+                    // restore cursor position
                     rd.done()?;
                     write!(info, " 🖭{}{} {}: {}", flash, audible, chunk_no, chunk_info)?;
                 }
