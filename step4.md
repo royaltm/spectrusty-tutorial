@@ -210,7 +210,7 @@ Now, let the user tell your joystick device in which direction it should stick a
 For this, another set of helper functions may be used:
 
 ```rust
-use spectrusty::utils::{
+use spectrusty_utils::{
     keyboard::$implementation::{
         update_keymap, update_joystick_from_key_event
     }

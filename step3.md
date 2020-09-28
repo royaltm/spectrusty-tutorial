@@ -55,7 +55,7 @@ use spectrusty::formats::tap::{
     read_tap_pulse_iter, TapChunkRead, TapChunkInfo
 };
 // with some sugar on top
-use spectrusty::utils::{
+use spectrusty_utils::{
     tap::{Tape, Tap},
     keyboard::minifb::update_keymap
 };
