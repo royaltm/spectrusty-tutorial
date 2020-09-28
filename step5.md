@@ -84,7 +84,7 @@ type Ula128AyKeypad<D=VFNullDevice<Ula128VidFrame>> = Ula128<
 ```
 
 We need to specify the [Ula128VidFrame] so the device can be used with [Ula128].
-We'll also use [VFNullDevice] instead of [TerminatorDevice] from the previous step.
+We'll also use [VFNullDevice] instead of `TerminatorDevice` from the previous step.
 
 Now for the helper types:
 
@@ -99,9 +99,10 @@ Because we'll be using chipsets that are using different [VideoFrame] implementa
 ```rust
 // a pluggable joystick with run-time selectable joystick types
 type PluggableMultiJoyBusDevice<V> = OptionalBusDevice<
-                                        MultiJoystickBusDevice<VFNullDevice<V>>,
+                                        MultiJoystickBusDevice<
+                                                VFNullDevice<V>>,
                                         VFNullDevice<V>
-                                     >;
+                                    >;
 ```
 
 The `OptionalBusDevice` new-type defined in the previous chapter should be deleted.
@@ -174,7 +175,7 @@ impl<C: Cpu, D: BusDevice> ZxSpectrum<C, Ula128AyKeypad<D>>
 
 ### Device access
 
-Perhaps it's time to refactor access to the joystick interface. We also need a way to access the 128 keypad to connect it with the user keyboard.
+Perhaps it's time to refactor access to the joystick interface. We also need a way to access the [128 keypad][SerialKeypad] to connect it with the user keyboard.
 
 The `JoystickAccess` trait hasn't changed, I'll just include it here for completness:
 
@@ -213,7 +214,7 @@ trait DeviceAccess {
 }
 ```
 
-`DeviceAccess` will be implemented directly on the chipset instead of model struct and will give us a conditional access to joystick as well as to the 128 keypad.
+`DeviceAccess` will be implemented directly on the chipset instead of model struct and will give us a conditional access to joystick as well as to the [128 keypad][SerialKeypad].
 
 Having an intermediate ready, we can now implement `JoystickAccess`.
 
@@ -300,7 +301,7 @@ impl DeviceAccess for Ula128AyKeypad<PluggableMultiJoyBusDevice<Ula128VidFrame>>
 }
 ```
 
-As you may see the joystick device for [Ula128] is positioned slightly deeper in the device chain, because we made its first device a sound processor. The 128 keypad is connected to the PSG's IO port `A`. 128k ROM routines are using
+As you may see the joystick device for [Ula128] is positioned slightly deeper in the device chain, because we made its first device a sound processor. The [128 keypad][SerialKeypad] is connected to the PSG's IO port `A`. 128k ROM routines are using
 this port for connecting to both the keypad (AUX - serial port 1) and the RS-232 (SER - serial port 2). But in this example we won't be using the second serial port for the RS-232 connection. You can check [this example] to see how to implement both.
 
 [![Iana](menu-step5.png)][sword-of-ianna]
@@ -409,9 +410,12 @@ impl<C: Cpu> ZxSpectrumModel<C> {
 
     fn border_color(&self) -> BorderColor  {
         match self {
-            ZxSpectrumModel::Spectrum16(spec16) => spec16.ula.border_color(),
-            ZxSpectrumModel::Spectrum48(spec48) => spec48.ula.border_color(),
-            ZxSpectrumModel::Spectrum128(spec128) => spec128.ula.border_color(),
+            ZxSpectrumModel::Spectrum16(spec16) =>
+                                        spec16.ula.border_color(),
+            ZxSpectrumModel::Spectrum48(spec48) =>
+                                        spec48.ula.border_color(),
+            ZxSpectrumModel::Spectrum128(spec128) =>
+                                        spec128.ula.border_color(),
         }
     }
     // hot-swap hardware models
@@ -445,8 +449,10 @@ fn run<C: Cpu, U>(
     where U: UlaCommon + UlaAudioFrame<BandLim> + DeviceAccess + HostConfig,
           ZxSpectrum<C, U>: JoystickAccess
 {
+    //... ✂
     // ensure the Blep implementation is prepared for pulses
-    spectrum.ula.ensure_audio_frame_time(blep, audio.sample_rate(), U::CPU_HZ as f64);
+    spectrum.ula.ensure_audio_frame_time(
+                            blep, audio.sample_rate(), U::CPU_HZ as f64);
     //... ✂
     let mut sync = ThreadSyncTimer::new(U::frame_duration_nanos());
     //... ✂
@@ -472,7 +478,7 @@ fn run<C: Cpu, U>(
 }
 ```
 
-Its signature has changed and the more elaborate constraint is needed as we are now using a generic `U` type instead of `UlaPAL` struct. Next, we have to make room for the audio frames in the `blep` buffer. Different chipsets can have different number of cycles per frame, and so the duration of the single frame can change. Lastly, we need to add a way to pass keyboard events to the 128 keypad.
+Its signature has changed and the more elaborate constraint is needed as we are now using a generic `U` type instead of `UlaPAL` struct. Next, we have to make room for the audio frames in the `blep` buffer. Different chipsets can have different number of cycles per frame, and so the duration of the single frame can change. Lastly, we need to add a way to pass keyboard events to the [128 keypad][SerialKeypad].
 
 A few methods in `ZxSpectrum` implementation only changes slightly and we have a new method: `update_keypad128_keys`.
 The signature of course reflects the changes:
@@ -543,17 +549,24 @@ impl<C: Cpu, U> ZxSpectrum<C, U>
         ) -> usize
         where U: UlaAudioFrame<B>
     {
-        self.ula.render_ay_audio_frame::<AyAmps<BlepDelta>>(blep, [0, 1, 2]);
+        self.ula.render_ay_audio_frame::<AyAmps<BlepDelta>>(blep,
+                                                            [0, 1, 2]);
         // (1) add some amplitude steps to the BLEP that correspond to the EAR/MIC line changes
         if self.state.audible_tape {
             // render both EAR/MIC OUT channel
-            self.ula.render_earmic_out_audio_frame::<EarMicAmps4<BlepDelta>>(blep, 2);
+            self.ula.render_earmic_out_audio_frame::<
+                EarMicAmps4<BlepDelta>
+            >(blep, 2);
             // and the EAR IN channel
-            self.ula.render_ear_in_audio_frame::<EarInAmps2<BlepDelta>>(blep, 2);
+            self.ula.render_ear_in_audio_frame::<
+                EarInAmps2<BlepDelta>
+            >(blep, 2);
         }
         else {
             // render only EAR OUT channel
-            self.ula.render_earmic_out_audio_frame::<EarOutAmps4<BlepDelta>>(blep, 2);
+            self.ula.render_earmic_out_audio_frame::<
+                EarOutAmps4<BlepDelta>
+            >(blep, 2);
         }
         // (2) finalize the BLEP frame
         self.ula.end_audio_frame(blep)
@@ -633,7 +646,8 @@ fn main() -> Result<()> {
     let (width, height) = <Ula128 as Video>::render_size_pixels(border);
     //... ✂
     // initialize audio
-    let frame_duration_nanos = <Ula128 as HostConfig>::frame_duration_nanos();
+    let frame_duration_nanos =
+                        <Ula128 as HostConfig>::frame_duration_nanos();
     //... ✂
     let mut spectrum = ZxSpectrumModel::Spectrum128(spec128);
 
@@ -656,7 +670,7 @@ fn main() -> Result<()> {
 
 ### Example
 
-The [example][step4.rs] program using [minifb] and [cpal], covering the scope of this tutorial can be run with:
+The [example][step5.rs] program using [minifb] and [cpal], covering the scope of this tutorial can be run with:
 
 ```sh
 cargo run --bin step5 --release -- resources/iana128.tap
@@ -669,4 +683,20 @@ Press `[ENTER]` and enjoy the 128k game.
 
 Back to [index][tutorial].
 
+<script>var clicky_site_ids = clicky_site_ids || []; clicky_site_ids.push(101270192);</script>
+<script async src="//static.getclicky.com/js"></script>
+
+[SPECTRUSTY]: https://royaltm.github.io/spectrusty/
+[tutorial]: https://royaltm.github.io/spectrusty-tutorial/
+[step5.rs]: https://github.com/royaltm/spectrusty-tutorial/blob/master/src/bin/step5.rs
+[minifb]: https://crates.io/crates/minifb
+[cpal]: https://crates.io/crates/cpal
 [sword-of-ianna]: https://github.com/fjpena/sword-of-ianna-zx
+[Blep]: https://docs.rs/spectrusty/*/spectrusty/audio/trait.Blep.html
+[BlepStereo]: https://docs.rs/spectrusty/*/spectrusty/audio/struct.BlepStereo.html
+[BusDevice::Timestamp]: https://docs.rs/spectrusty/*/spectrusty/bus/trait.BusDevice.html#associatedtype.Timestamp
+[SerialKeypad]: https://docs.rs/spectrusty/*/spectrusty/peripherals/serial/struct.SerialKeypad.html
+[Ula128]: https://docs.rs/spectrusty/*/spectrusty/chip/ula128/struct.Ula128.html
+[Ula128VidFrame]: https://docs.rs/spectrusty/*/spectrusty/chip/ula128/struct.Ula128VidFrame.html
+[VFNullDevice]: https://docs.rs/spectrusty/*/spectrusty/bus/type.VFNullDevice.html
+[VideoFrame]: https://docs.rs/spectrusty/*/spectrusty/video/trait.VideoFrame.html
