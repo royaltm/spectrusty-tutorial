@@ -88,7 +88,7 @@ fn main() -> Result<()> {
 fn run<C: Cpu, M: ZxMemory>(
         spectrum: &mut ZxSpectrum<C, M>,
         env: HostEnvironment,
-    ) -> Result<Option<ModelReq>>
+    ) -> Result<Action>
 {
     let HostEnvironment { audio, blep, border, ... } = env;
     let (width, height) = <UlaPAL<M> as Video>::render_size_pixels(border);
@@ -117,6 +117,7 @@ fn run<C: Cpu, M: ZxMemory>(
 
         //... ✂
     }
+    Ok(Action::Exit)
 }
 ```
 

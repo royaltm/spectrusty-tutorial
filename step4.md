@@ -112,7 +112,7 @@ impl<C: Cpu, M: ZxMemory, D> ZxSpectrum<C, M, D>
 fn run<C: Cpu, M: ZxMemory, D>(
         spectrum: &mut ZxSpectrum<C, M, D>,
         env: HostEnvironment,
-    ) -> Result<Option<ModelReq>>
+    ) -> Result<Action>
     where D: BusDevice<Timestamp=VFrameTs<UlaVideoFrame>>
 ```
 
@@ -128,7 +128,7 @@ impl<C: Cpu, M: ZxMemory, D: BusDevice> ZxSpectrum<C, M, D>
 fn run<C: Cpu, M: ZxMemory, D: BusDevice>(
         spectrum: &mut ZxSpectrum<C, M, D>,
         env: HostEnvironment,
-    ) -> Result<Option<ModelReq>>
+    ) -> Result<Action>
     where UlaPAL<M, D>: ControlUnit
     //... ✂
 ```
@@ -232,7 +232,7 @@ struct KeyEvent {
 }
     //... ✂ 
     // later in run
-    while is_running() {
+    'main: while is_running() {
         process_keyboard_events(
             |KeyEvent { key, pressed, shift_down, ctrl_down }| {
             if !update_joystick_from_key_event(key, pressed, FIRE_KEY,
@@ -301,7 +301,7 @@ But still, not the best solution, because it would require our `run` to be restr
 fn run<C: Cpu, M: ZxMemory, P, J>(
         spectrum: &mut ZxSpectrum<C, M, JoystickBusDevice<P, J, TerminatorDevice>>,
         env: HostEnvironment,
-    ) -> Result<Option<ModelReq>>
+    ) -> Result<Action>
     where P: PortAddress,
           J: JoystickDevice + JoystickInterface
     //... ✂
@@ -350,7 +350,7 @@ We'd need to adapt `run` only slightly...
 fn run<C: Cpu, M: ZxMemory, D: BusDevice>(
         spectrum: &mut ZxSpectrum<C, M, D>,
         env: HostEnvironment,
-    ) -> Result<Option<ModelReq>>
+    ) -> Result<Action>
     where Ula<M, D>: ControlUnit,
           ZxSpectrum<C, M, D>: JoystickAccess
     //... ✂
