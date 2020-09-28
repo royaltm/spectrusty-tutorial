@@ -14,8 +14,8 @@ Step 5 - 128
 
 * 32kB ROM with 128k software,
 * ULA128 with MMU and shadow screen memory,
-* an AY-3-8910 Programmable Sound Processor
-* .. with an RS-232 and an external keypad.
+* an [AY-3-8910 Programmable Sound Processor](https://en.wikipedia.org/wiki/General_Instrument_AY-3-8910)
+* .. with an [RS-232](https://en.wikipedia.org/wiki/RS-232) and an [external keypad](http://www.fruitcake.plus.com/Sinclair/Spectrum128/Keypad/Spectrum128Keypad.htm).
 
 We are going to skip the `RS-232`, but otherwise we'll add a 128k model to the emulator that features all of the above.
 
@@ -301,8 +301,7 @@ impl DeviceAccess for Ula128AyKeypad<PluggableMultiJoyBusDevice<Ula128VidFrame>>
 }
 ```
 
-As you may see the joystick device for [Ula128] is positioned slightly deeper in the device chain, because we made its first device a sound processor. The [128 keypad][SerialKeypad] is connected to the PSG's IO port `A`. 128k ROM routines are using
-this port for connecting to both the keypad (AUX - serial port 1) and the RS-232 (SER - serial port 2). But in this example we won't be using the second serial port for the RS-232 connection. You can check [this example] to see how to implement both.
+As you may see the joystick device for [Ula128] is positioned slightly deeper in the device chain, because we made its first device a sound processor. The [128 keypad][SerialKeypad] is connected to the PSG's IO port `A`. 128k ROM routines are using this port for connecting to both the keypad (AUX - serial port 1) and the [RS-232][Rs232Io] (SER - serial port 2). But in this example we won't be using the second serial port for the RS-232 connection. You can check [this example](https://github.com/royaltm/spectrusty/tree/master/examples/sdl2-zxspectrum) to see how to implement both.
 
 [![Iana](menu-step5.png)][sword-of-ianna]
 
@@ -695,6 +694,7 @@ Back to [index][tutorial].
 [Blep]: https://docs.rs/spectrusty/*/spectrusty/audio/trait.Blep.html
 [BlepStereo]: https://docs.rs/spectrusty/*/spectrusty/audio/struct.BlepStereo.html
 [BusDevice::Timestamp]: https://docs.rs/spectrusty/*/spectrusty/bus/trait.BusDevice.html#associatedtype.Timestamp
+[Rs232Io]: https://docs.rs/spectrusty/0.1.0/spectrusty/bus/ay/serial128/struct.Rs232Io.html
 [SerialKeypad]: https://docs.rs/spectrusty/*/spectrusty/peripherals/serial/struct.SerialKeypad.html
 [Ula128]: https://docs.rs/spectrusty/*/spectrusty/chip/ula128/struct.Ula128.html
 [Ula128VidFrame]: https://docs.rs/spectrusty/*/spectrusty/chip/ula128/struct.Ula128VidFrame.html
