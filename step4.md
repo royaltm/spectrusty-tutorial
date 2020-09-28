@@ -7,8 +7,8 @@ In this part you can learn how add peripherals to your emulator.
 
 [![Step 4](example-step4.png)][deathchase]
 
-Step 4 - Stack that stick
--------------------------
+Step 4 - Plug that stick
+------------------------
 
 At the end of this step, you will have a switchable joystick connected to your emulated ZX Spectrum.
 
@@ -642,7 +642,7 @@ Back to [index][tutorial].
 [Kempston Joystick]: https://en.wikipedia.org/wiki/Kempston_Micro_Electronics
 [ZX Interface 2]: https://en.wikipedia.org/wiki/ZX_Interface_2
 [pull request]: https://github.com/royaltm/spectrusty/pulls
-[spectrusty::bus] https://docs.rs/spectrusty/*/spectrusty/bus/index.html
+[spectrusty::bus]: https://docs.rs/spectrusty/*/spectrusty/bus/index.html
 [BusDevice]: https://docs.rs/spectrusty/*/spectrusty/bus/trait.BusDevice.html
 [BusDevice::NextDevice]: https://docs.rs/spectrusty/*/spectrusty/bus/trait.BusDevice.html#associatedtype.NextDevice
 [BusDevice::Timestamp]: https://docs.rs/spectrusty/*/spectrusty/bus/trait.BusDevice.html#associatedtype.Timestamp
