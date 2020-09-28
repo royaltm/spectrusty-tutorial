@@ -131,7 +131,7 @@ type SpectrumPal = SpectrumPalA8R8G8B8;
 
 impl<C: Cpu, M: ZxMemory, D: BusDevice> ZxSpectrum<C, M, D>
     where UlaPAL<M, D>: ControlUnit,
-          Self: DeviceAccess
+          Self: JoystickAccess
 {
     fn info(&mut self) -> Result<String> {
         let mut info = format!("ZX Spectrum {}k", self.ula.memory_ref().ram_ref().len() / 1024);
@@ -396,7 +396,7 @@ impl<C, M, P, J> ZxSpectrum<C, M, JoystickBusDevice<P, J, TerminatorDevice>>
     }
 }
 */
-trait DeviceAccess {
+trait JoystickAccess {
     type JoystickInterface: JoystickInterface + ?Sized;
     // Universal joystick interface access
     fn joystick_interface(&mut self) -> Option<&mut Self::JoystickInterface> {
@@ -412,12 +412,12 @@ trait DeviceAccess {
 }
 
 // implement a default device for completness
-impl<C: Cpu, M: ZxMemory> DeviceAccess for ZxSpectrum<C, M> {
+impl<C: Cpu, M: ZxMemory> JoystickAccess for ZxSpectrum<C, M> {
     type JoystickInterface = NullJoystickDevice;
 }
 
 // implement a joystick device
-impl<C, M, P, J> DeviceAccess for ZxSpectrum<C, M, JoystickBusDevice<P, J, TerminatorDevice>>
+impl<C, M, P, J> JoystickAccess for ZxSpectrum<C, M, JoystickBusDevice<P, J, TerminatorDevice>>
     where C: Cpu,
           M: ZxMemory,
           P: PortAddress,
@@ -433,7 +433,7 @@ impl<C, M, P, J> DeviceAccess for ZxSpectrum<C, M, JoystickBusDevice<P, J, Termi
 // a pluggable joystick with a single joystick type
 type PluggableJoyBusDevice<P, J> = OptionalBusDevice<JoystickBusDevice<P, J, TerminatorDevice>>;
 
-impl<C, M, P, J> DeviceAccess for ZxSpectrum<C, M, PluggableJoyBusDevice<P, J>>
+impl<C, M, P, J> JoystickAccess for ZxSpectrum<C, M, PluggableJoyBusDevice<P, J>>
     where C: Cpu,
           M: ZxMemory,
           P: PortAddress,
@@ -460,7 +460,7 @@ impl<C, M, P, J> DeviceAccess for ZxSpectrum<C, M, PluggableJoyBusDevice<P, J>>
 // a pluggable joystick with run-time selectable joystick types
 type PluggableMultiJoyBusDevice = OptionalBusDevice<MultiJoystickBusDevice<TerminatorDevice>>;
 
-impl<C, M> DeviceAccess for ZxSpectrum<C, M, PluggableMultiJoyBusDevice>
+impl<C, M> JoystickAccess for ZxSpectrum<C, M, PluggableMultiJoyBusDevice>
     where C: Cpu, M: ZxMemory
 {
     type JoystickInterface = dyn JoystickInterface;
@@ -736,7 +736,7 @@ fn run<C: Cpu, M: ZxMemory, D: BusDevice>(
         Env { window, width, height, border, pixels, audio, blep }: Env<'_>,
     ) -> Result<Action>
     where UlaPAL<M, D>: ControlUnit,
-          ZxSpectrum<C, M, D>: DeviceAccess
+          ZxSpectrum<C, M, D>: JoystickAccess
 {
     window.set_title(&spectrum.info()?);
 
