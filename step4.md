@@ -394,7 +394,8 @@ First, we need to import it:
 
 ```rust
 // a terminated optional bus device
-type OptionalBusDevice<D> = spectrusty::bus::OptionalBusDevice<D, TerminatorDevice>;
+type OptionalBusDevice<D> = spectrusty::bus::OptionalBusDevice<D,
+                                                        TerminatorDevice>;
 ```
 
 Next, we'll add one method for plugging the joystick in or out to the `JoystickAccess` trait:
@@ -414,7 +415,8 @@ trait JoystickAccess {
 type PluggableJoyBusDevice<P, J> = OptionalBusDevice<
                                 JoystickBusDevice<P, J, TerminatorDevice>>;
 
-impl<C, M, P, J> JoystickAccess for ZxSpectrum<C, M, PluggableJoyBusDevice<P, J>>
+impl<C, M, P, J> JoystickAccess for ZxSpectrum<C, M,
+                                            PluggableJoyBusDevice<P, J>>
     where C: Cpu,
           M: ZxMemory,
           P: PortAddress,
