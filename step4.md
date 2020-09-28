@@ -100,7 +100,7 @@ fn run<C: Cpu, M: ZxMemory, D: BusDevice>(
     //... ✂
 ```
 
-...but it won't compile. The problem is that we invoke methods from [ControlUnit] trait. Those methods are not implemented for every `Ula<M, D>` because they use `M` and `D` in some meaningful way. Even the condition `M: ZxMemory, D: BusDevice` is still not enough. We need to be more [specific](https://docs.rs/spectrusty/0.1.0/spectrusty/chip/trait.ControlUnit.html#impl-ControlUnit-3).
+...but it won't compile. The problem is that we invoke methods from [ControlUnit] trait. Those methods are not implemented for every `Ula<M, D>` because they use `M` and `D` in some meaningful way. Even the condition `M: ZxMemory, D: BusDevice` is still not enough. We need to be more [specific](https://docs.rs/spectrusty/*/spectrusty/chip/trait.ControlUnit.html#impl-ControlUnit-3).
 
 ```rust
 impl<C: Cpu, M: ZxMemory, D> ZxSpectrum<C, M, D>
@@ -108,7 +108,6 @@ impl<C: Cpu, M: ZxMemory, D> ZxSpectrum<C, M, D>
 {
     //... ✂
 }
-
 
 fn run<C: Cpu, M: ZxMemory, D>(
         spectrum: &mut ZxSpectrum<C, M, D>,
@@ -202,10 +201,11 @@ For now, we will just "weld it" here, in `main`:
 
 ```rust
     // build the hardware
-    let mut spec16 = ZxSpectrum16k::<Z80NMOS, KempstonJoystick::<TerminatorDevice>>::default();
+    let mut spec16 = ZxSpectrum16k::<Z80NMOS,
+                        KempstonJoystick::<TerminatorDevice>>::default();
 ```
 
-We now have to let the user tell your joystick device in which direction it should stick and allow for pressing its fire button.
+Now, let the user tell your joystick device in which direction it should stick and press its fire button.
 
 For this, another set of helper functions may be used:
 
@@ -217,7 +217,7 @@ use spectrusty::utils::{
 };
 ```
 
-Where `$implementation` is one of the available keyboard implementations for event loops. If there isn't one for your framework, you can implement it yourself by adapting the existing one. And of course, please make a [pull request].
+Where [`$implementation`][spectrusty-utils::keyboard] is one of the available keyboard implementations for event loops. If there isn't one for your framework, you can implement it yourself by adapting the existing one. And of course, please make a [pull request].
 
 We also need to slightly refactor how to handle keyboard events:
 
@@ -233,11 +233,14 @@ struct KeyEvent {
     //... ✂ 
     // later in run
     while is_running() {
-        process_keyboard_events(|KeyEvent { key, pressed, shift_down, ctrl_down }| {
+        process_keyboard_events(
+            |KeyEvent { key, pressed, shift_down, ctrl_down }| {
             if !update_joystick_from_key_event(key, pressed, FIRE_KEY,
-                                                || spectrum.joystick_interface()) {
+                                    || spectrum.joystick_interface())
+            {
                 spectrum.update_keyboard(|keymap|
-                    update_keymap(keymap, key, pressed, shift_down, ctrl_down)
+                    update_keymap(
+                        keymap, key, pressed, shift_down, ctrl_down)
                 );
             }
         });
@@ -266,7 +269,7 @@ impl<C: Cpu, M: ZxMemory> ZxSpectrum<C, M, KempstonJoystick<TerminatorDevice>> {
 
 However, it won't do us any good. That's because our `run` function is defined with a generic `D` parameter, so the compiler would complain that the `joystick_interface` method does not exist in its context.
 
-We need to make this function work in a broader context. In the above form, it returns a reference to the [KempstonJoystick] bus device which is a specialized version of [JoystickBusDevice]. Ok, so following this train of thought, we change the implementation to:
+We need to make this function work in a broader context. In the above form, it returns a reference to the [KempstonJoystick] bus device which is a specialized version of [JoystickBusDevice]. Ok, so following this, we change the implementation to:
 
 ```rust
 // we need more of these
@@ -385,7 +388,7 @@ let mut spec16 = ZxSpectrum16k::<Z80NMOS,
 
 ### Make it optional
 
-In our keyboard handling routine, we have dedicated the arrow (cursor) keys and the right control key exclusively for the joystick interface. What if the user wants to use the cursor keys for the cursor control in BASIC instead?. In other words, how to make the joystick optional?
+In our keyboard handling routine, we have dedicated the arrow (cursor) keys and the right control key exclusively for the joystick interface. What if the user wants to use the cursor keys for the cursor control in BASIC instead? In other words, how to make the joystick optional?
 
 In the [spectrusty::bus] module there is a meta-device named [OptionalBusDevice]. Basically, this works like an [Option] enum but implements the [BusDevice] trait, so we can plug in or take out a device of some predefined type at run time.
 
@@ -440,7 +443,7 @@ impl<C, M, P, J> DeviceAccess for ZxSpectrum<C, M, PluggableJoyBusDevice<P, J>>
 
 Let's stop for a moment and look at the following line: `self.ula.bus_device_mut().as_deref_mut()` in `fn joystick_interface`. It might not be obvious what do we access here exactly and how?
 
-[ControlUnit::bus_device_mut] returns a mutable reference to the first device. In this case, it's our specialized [OptionalBusDevice]. The `OptionalBusDevice<D>` is a pointer that [dereferences][Deref] to `Option<D>`. However, what we need in the end is `Option<&mut J>`. When Rust is resolving `as_deref_mut` at first, it dereferences from`[OptionalBusDevice<D>` to [Option<D>] as there is no such method implemented directly on the `OptionalBusDevice`. The one that is actually called is found on [`&mut Option<D>`][Option::as_deref_mut] and it returns `Option<&mut <D as Deref>::Target>`.
+[ControlUnit::bus_device_mut] returns a mutable reference to the first device. In this case, it's our specialized [OptionalBusDevice]. The `OptionalBusDevice<D>` is a pointer that [dereferences][Deref] to `Option<D>`. However, what we need in the end is `Option<&mut J>`. When Rust is resolving `as_deref_mut` at first, it dereferences from `OptionalBusDevice<D>` to `Option<D>` as there is no such method implemented directly on the `OptionalBusDevice`. The one that is actually called is found on [`&mut Option<D>`][Option::as_deref_mut] and it returns `Option<&mut <D as Deref>::Target>`.
 
 Because `D` in this instant is [JoystickBusDevice], and it dereferences to `J`, we get `Option<&mut J>` in return.
 
@@ -643,6 +646,7 @@ Back to [index][tutorial].
 [ZX Interface 2]: https://en.wikipedia.org/wiki/ZX_Interface_2
 [pull request]: https://github.com/royaltm/spectrusty/pulls
 [spectrusty::bus]: https://docs.rs/spectrusty/*/spectrusty/bus/index.html
+[spectrusty-utils::keyboard]: https://docs.rs/spectrusty-utils/*/spectrusty_utils/keyboard/index.html
 [BusDevice]: https://docs.rs/spectrusty/*/spectrusty/bus/trait.BusDevice.html
 [BusDevice::NextDevice]: https://docs.rs/spectrusty/*/spectrusty/bus/trait.BusDevice.html#associatedtype.NextDevice
 [BusDevice::Timestamp]: https://docs.rs/spectrusty/*/spectrusty/bus/trait.BusDevice.html#associatedtype.Timestamp
