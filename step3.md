@@ -797,6 +797,8 @@ and you may actually `SAVE` your program this time, just select Tape -> Record f
 
 ### Next
 
+[Step 4 - Plug that stick](step4.md).
+
 Back to [index][tutorial].
 
 <script>var clicky_site_ids = clicky_site_ids || []; clicky_site_ids.push(101270192);</script>

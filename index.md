@@ -54,7 +54,7 @@ Tutorial steps
 * [Step 1 - Baby steps](step1.md)
 * [Step 2 - Buzz on](step2.md)
 * [Step 3 - R Tape loading error](step3.md)
-* Step 4 - soon
+* [Step 4 - Plug that stick](step4.md)
 * Step 5 - soon
 
 [![ZX Spectrum keyboard layout][keyboard]][keyboard]
