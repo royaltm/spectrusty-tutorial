@@ -193,7 +193,7 @@ impl<C: Cpu, D> ZxSpectrumModel<C, D>
 }
 ```
 
-In this instant, we can't use `UlaPAL<M, D>: ControlUnit` condition, because we don't deal with a single `M` type. We would have to define constraint for each variant of `UlaPAL` the `ZxSpectrumModel` is using. We should stick to the smallest common set of required constraints here instead.
+In this instance, we can't use `UlaPAL<M, D>: ControlUnit` condition, because we don't deal with a single `M` type. We would have to define constraint for each variant of `UlaPAL` the `ZxSpectrumModel` is using. We should stick to the smallest common set of required constraints here instead.
 
 So far, we have added some new generic parameters but, when do we plug the joystick in, huh?
 
@@ -443,7 +443,7 @@ impl<C, M, P, J> DeviceAccess for ZxSpectrum<C, M, PluggableJoyBusDevice<P, J>>
 
 Let's stop for a moment and look at the following line: `self.ula.bus_device_mut().as_deref_mut()` in `fn joystick_interface`. It might not be obvious what do we access here exactly and how?
 
-[ControlUnit::bus_device_mut] returns a mutable reference to the first device. In this case, it's our specialized [OptionalBusDevice]. The `OptionalBusDevice<D>` is a pointer that [dereferences][Deref] to `Option<D>`. However, what we need in the end is `Option<&mut J>`. When Rust is resolving `as_deref_mut` at first, it finds one on [`&mut Option<D>`][Option::as_deref_mut] as there is no such method implemented directly on the `OptionalBusDevice`. The method returns `Option<&mut <D as Deref>::Target>`. Because `D` in this instant is [JoystickBusDevice], and it dereferences to `J`, we get `Option<&mut J>` in return.
+[ControlUnit::bus_device_mut] returns a mutable reference to the first device. In this case, it's our specialized [OptionalBusDevice]. The `OptionalBusDevice<D>` is a pointer that [dereferences][Deref] to `Option<D>`. However, what we need in the end is `Option<&mut J>`. When Rust is resolving `as_deref_mut` at first, it finds one on [`&mut Option<D>`][Option::as_deref_mut] as there is no such method implemented directly on the `OptionalBusDevice`. The method returns `Option<&mut <D as Deref>::Target>`. Because `D` in this instance is [JoystickBusDevice], and it dereferences to `J`, we get `Option<&mut J>` in return.
 
 Let's now add the ability to toggle the joystick presence in the input handler:
 
@@ -453,7 +453,11 @@ impl<C: Cpu, M: ZxMemory, D: BusDevice> ZxSpectrum<C, M, D>
           Self: DeviceAccess
 {
     //... ✂
-    fn update_on_user_request(&mut self, input: InputRequest) -> Result<Option<Action>> {
+    fn update_on_user_request(
+            &mut self,
+            input: InputRequest
+        ) -> Result<Option<Action>>
+    {
         //... ✂
             ToggleJoystick  => { self.toggle_joystick(); }
         //... ✂
@@ -511,7 +515,7 @@ trait DeviceAccess {
 }
 ```
 
-You may notice that we have lifted the [`Sized`][Sized] constraint that is enabled by default. This will become necessary in a moment.
+You may have noticed that we have lifted the [`Sized`][Sized] constraint that is enabled by default. This will become necessary in a moment.
 
 ```rust
 // a pluggable joystick with run-time selectable joystick types
@@ -584,13 +588,18 @@ but takes advantage of the [DerefMut] implementation of the [OptionalBusDevice].
 As before, we have to change the instance of our emulated hardware:
 
 ```rust
-    let mut spec16 = ZxSpectrum16k::<Z80NMOS, PluggableMultiJoyBusDevice>::default();
+    let mut spec16 = ZxSpectrum16k::<Z80NMOS,
+                                    PluggableMultiJoyBusDevice>::default();
 ```
 
 and serve a request from a user to select joystick:
 
 ```rust
-    fn update_on_user_request(&mut self, input: InputRequest) -> Result<Option<Action>> {
+    fn update_on_user_request(
+            &mut self,
+            input: InputRequest
+        ) -> Result<Option<Action>>
+    {
         //... ✂
             SelectJoystick(joy)   => { self.select_joystick(joy); }
             // ToggleJoystick  => { self.toggle_joystick(); }
