@@ -443,9 +443,7 @@ impl<C, M, P, J> DeviceAccess for ZxSpectrum<C, M, PluggableJoyBusDevice<P, J>>
 
 Let's stop for a moment and look at the following line: `self.ula.bus_device_mut().as_deref_mut()` in `fn joystick_interface`. It might not be obvious what do we access here exactly and how?
 
-[ControlUnit::bus_device_mut] returns a mutable reference to the first device. In this case, it's our specialized [OptionalBusDevice]. The `OptionalBusDevice<D>` is a pointer that [dereferences][Deref] to `Option<D>`. However, what we need in the end is `Option<&mut J>`. When Rust is resolving `as_deref_mut` at first, it dereferences from `OptionalBusDevice<D>` to `Option<D>` as there is no such method implemented directly on the `OptionalBusDevice`. The one that is actually called is found on [`&mut Option<D>`][Option::as_deref_mut] and it returns `Option<&mut <D as Deref>::Target>`.
-
-Because `D` in this instant is [JoystickBusDevice], and it dereferences to `J`, we get `Option<&mut J>` in return.
+[ControlUnit::bus_device_mut] returns a mutable reference to the first device. In this case, it's our specialized [OptionalBusDevice]. The `OptionalBusDevice<D>` is a pointer that [dereferences][Deref] to `Option<D>`. However, what we need in the end is `Option<&mut J>`. When Rust is resolving `as_deref_mut` at first, it finds one on [`&mut Option<D>`][Option::as_deref_mut] as there is no such method implemented directly on the `OptionalBusDevice`. The method returns `Option<&mut <D as Deref>::Target>`. Because `D` in this instant is [JoystickBusDevice], and it dereferences to `J`, we get `Option<&mut J>` in return.
 
 Let's now add the ability to toggle the joystick presence in the input handler:
 
