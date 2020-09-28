@@ -11,10 +11,10 @@ use minifb::{Key, KeyRepeat, Scale, Window, WindowOptions, Menu};
 use rand::prelude::*;
 
 use spectrusty::audio::{
-        AudioSample, EarMicAmps4,
-        Blep, AudioFrame, FromSample, EarMicOutAudioFrame,
-        synth::BandLimited,
-        host::cpal::AudioHandleAnyFormat
+    AudioSample, EarMicAmps4,
+    Blep, AudioFrame, FromSample, EarMicOutAudioFrame,
+    synth::BandLimited,
+    host::cpal::AudioHandleAnyFormat
 };
 use spectrusty::z80emu::{Cpu, Z80NMOS};
 use spectrusty::chip::{ControlUnit, HostConfig, MemoryAccess, ThreadSyncTimer, ula::UlaPAL};

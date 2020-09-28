@@ -16,11 +16,11 @@ use rand::prelude::*;
 use log::{error, warn, info, debug, trace};
 
 use spectrusty::audio::{
-        AudioSample, EarMicAmps4, EarOutAmps4, EarInAmps2,
-        Blep, AudioFrame, FromSample, EarMicOutAudioFrame, EarInAudioFrame,
-        synth::BandLimited,
-        carousel::AudioFrameResult,
-        host::cpal::AudioHandleAnyFormat
+    AudioSample, EarMicAmps4, EarOutAmps4, EarInAmps2,
+    Blep, AudioFrame, FromSample, EarMicOutAudioFrame, EarInAudioFrame,
+    synth::BandLimited,
+    carousel::AudioFrameResult,
+    host::cpal::AudioHandleAnyFormat
 };
 use spectrusty::z80emu::{Cpu, Z80NMOS};
 use spectrusty::clock::FTs;
