@@ -116,7 +116,7 @@ fn run<C: Cpu, M: ZxMemory, D>(
     where D: BusDevice<Timestamp=VFrameTs<UlaVideoFrame>>
 ```
 
-But this seems convoluted. Is there another way? Well, yes. Instead, we'll set the constraint to directly require `ControlUnit` on the chipset implementation:
+But this seems convoluted. Is there another way? Well, yes - let's set the constraint to directly require `ControlUnit` on the chipset implementation:
 
 ```rust
 impl<C: Cpu, M: ZxMemory, D: BusDevice> ZxSpectrum<C, M, D>
@@ -193,9 +193,9 @@ impl<C: Cpu, D> ZxSpectrumModel<C, D>
 }
 ```
 
-In this instance, we can't use `UlaPAL<M, D>: ControlUnit` condition, because we don't deal with a single `M` type. We would have to define constraint for each variant of `UlaPAL` the `ZxSpectrumModel` is using. We should stick to the smallest common set of required constraints here instead.
+In this instance, we can't use `UlaPAL<M, D>: ControlUnit` condition, because we don't deal with a single `M` type. We would have to define constraint for each variant of `UlaPAL` the `ZxSpectrumModel` is using. We'd better stick to the smallest common set of required constraints here.
 
-So far, we have added some new generic parameters but, when do we plug the joystick in, huh?
+So far, we have added some new generic parameters, but when do we plug the joystick in, huh?
 
 For now, we will just "weld it" here, in `main`:
 
@@ -258,7 +258,8 @@ Next, we'll take the naive, specialized approach:
 
 ```rust
 // Specialized joystick interface access.
-impl<C: Cpu, M: ZxMemory> ZxSpectrum<C, M, KempstonJoystick<TerminatorDevice>> {
+impl<C: Cpu, M: ZxMemory> ZxSpectrum<C, M,
+                                    KempstonJoystick<TerminatorDevice>> {
     fn joystick_interface(&mut self) -> &mut impl JoystickInterface {
         &mut **self.ula.bus_device_mut()
         // or
@@ -281,7 +282,8 @@ use spectrusty::bus::{
     }
 };
 // Generic joystick interface access.
-impl<C, M, P, J> ZxSpectrum<C, M, JoystickBusDevice<P, J, TerminatorDevice>>
+impl<C, M, P, J> ZxSpectrum<C, M, JoystickBusDevice<P, J,
+                                                    TerminatorDevice>>
     where C: Cpu,
           M: ZxMemory,
           P: PortAddress,
@@ -330,7 +332,9 @@ impl<C: Cpu, M: ZxMemory> JoystickAccess for ZxSpectrum<C, M> {
 }
 
 // implement a joystick device
-impl<C, M, P, J> JoystickAccess for ZxSpectrum<C, M, JoystickBusDevice<P, J, TerminatorDevice>>
+impl<C, M, P, J> JoystickAccess for ZxSpectrum<C, M,
+                                               JoystickBusDevice<P, J,
+                                                        TerminatorDevice>>
     where C: Cpu,
           M: ZxMemory,
           P: PortAddress,
@@ -338,7 +342,8 @@ impl<C, M, P, J> JoystickAccess for ZxSpectrum<C, M, JoystickBusDevice<P, J, Ter
 {
     type JoystickInterface = J;
 
-    fn joystick_interface(&mut self) -> Option<&mut Self::JoystickInterface> {
+    fn joystick_interface(&mut self) -> Option<&mut Self::JoystickInterface>
+    {
         Some(self.ula.bus_device_mut())
     }
 }
@@ -425,7 +430,8 @@ impl<C, M, P, J> JoystickAccess for ZxSpectrum<C, M,
 {
     type JoystickInterface = J;
 
-    fn joystick_interface(&mut self) -> Option<&mut Self::JoystickInterface> {
+    fn joystick_interface(&mut self) -> Option<&mut Self::JoystickInterface>
+    {
         self.ula.bus_device_mut().as_deref_mut()
     }
 
