@@ -31,7 +31,7 @@ use spectrusty::chip::{
 };
 use spectrusty::memory::{ZxMemory, Memory16k, Memory48k};
 use spectrusty::video::{
-    Video, Palette, PixelBuffer, BorderSize, BorderColor, 
+    Video, Palette, PixelBuffer, BorderSize, BorderColor,
     pixel::{PixelBufP32, SpectrumPalA8R8G8B8}
 };
 use spectrusty::peripherals::{KeyboardInterface, ZXKeyboardMap};
@@ -263,8 +263,8 @@ impl<C: Cpu, M: ZxMemory> ZxSpectrum<C, M> {
         Ok((fts_delta, state_changed))
     }
 
-    // run frames as fast as possible until a single frame duration passes in real-time
-    // or if the turbo state ends automatically
+    // run frames as fast as possible until a single frame duration passes
+    // in real-time or if the turbo state ends automatically
     fn run_frames_accelerated(
             &mut self,
             time_sync: &mut ThreadSyncTimer
@@ -284,7 +284,7 @@ impl<C: Cpu, M: ZxMemory> ZxSpectrum<C, M> {
         }
         Ok((sum, state_changed))
     }
-    // `video_buffer` is a mutable slice of bytes.
+    // `buffer` is a mutable slice of bytes.
     // `pitch` is the number of bytes of the single row of pixels.
     // `border` determines the size of the rendered screen.
     fn render_video<'a, P: Palette<Pixel=Pixel<'a>>>(
