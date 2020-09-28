@@ -43,11 +43,12 @@ use spectrusty::audio::{
         synth::BandLimited,
         host::cpal::AudioHandleAnyFormat
 };
+use spectrusty::clock::FTs;
 // we need two more control traits for handling EAR/MIC lines
 use spectrusty::chip::{
     FrameState, ControlUnit, MemoryAccess, MicOut, EarIn,
     ThreadSyncTimer,
-    ula::Ula
+    ula::UlaPAL
 };
 // yes, the highlight of our imports
 use spectrusty::formats::tap::{
@@ -66,7 +67,7 @@ Next, you need to update your emulator and add the TAPE cassette recorder to the
 #[derive(Default)]
 struct ZxSpectrum<C: Cpu, M: ZxMemory> {
     cpu: C,
-    ula: Ula<M>,
+    ula: UlaPAL<M>,
     nmi_request: bool,
     // the state of the emulator program
     state: EmulatorState
@@ -723,7 +724,7 @@ The upside of this implementation is that we don't need to know anything about t
 
 The downside is that it may sometimes render some false-positive and false-negative results. But there is always plenty of room to improve this algorithm. The very first step would be to experiment with the threshold values.
 
-You may also check out [this implementation] that is a more sophisticated version of this method. As a bonus, it can also detect if the ROM loading routine is being called and loads data instantly.
+You may also check out [another implementation] that is a more sophisticated version of this method. As a bonus, it can also detect if the ROM loading routine is being called and loads data instantly.
 
 The SAVE detection mechanism is less complex, but it solely depends on the ability of the TAP writer to decode pulses.
 
@@ -821,5 +822,6 @@ Back to [index][tutorial].
 [ControlUnit::execute_next_frame]: https://docs.rs/spectrusty/*/spectrusty/chip/trait.ControlUnit.html#tymethod.execute_next_frame
 [ControlUnit::nmi]: https://docs.rs/spectrusty/*/spectrusty/chip/trait.ControlUnit.html#tymethod.nmi
 [Cpu::nmi]: https://docs.rs/z80emu/*/z80emu/trait.Cpu.html#tymethod.nmi
-[this implementation]: https://github.com/royaltm/spectrusty/blob/master/examples/zxspectrum-common/src/spectrum.rs#L283
+[another implementation]: https://github.com/royaltm/spectrusty/blob/da109d100b5e983746658a63d5b4ee3265ad985a/examples/zxspectrum-common/src/spectrum.rs#L283
 [pulse decoder]: https://docs.rs/spectrusty-formats/*/spectrusty_formats/tap/pulse/index.html
+[spectrusty-utils]: https://docs.rs/spectrusty-utils/

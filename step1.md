@@ -171,7 +171,7 @@ impl<C: Cpu, M: ZxMemory> ZxSpectrum<C, M> {
     fn run_frame(&mut self) {
         self.ula.execute_next_frame(&mut self.cpu);
     }
-    // `video_buffer` is a mutable slice of bytes.
+    // `buffer` is a mutable slice of bytes.
     // `pitch` is the number of bytes that the single row of pixels occupy.
     // `border` determines the size of the rendered screen.
     fn render_video<'a, P: Palette<Pixel=Pixel<'a>>>(
@@ -273,7 +273,7 @@ fn run<C: Cpu, M: ZxMemory>(
     ) -> Result<Action>
 {
     let HostEnvironment { border, ... } = env;
-    let (width, height) = <Ula<M> as Video>::render_size_pixels(border);
+    let (width, height) = <UlaPAL<M> as Video>::render_size_pixels(border);
 
     let mut sync = ThreadSyncTimer::new(
                     UlaPAL::<M>::frame_duration_nanos());

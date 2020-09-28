@@ -91,7 +91,7 @@ fn run<C: Cpu, M: ZxMemory>(
     ) -> Result<Option<ModelReq>>
 {
     let HostEnvironment { audio, blep, border, ... } = env;
-    let (width, height) = <Ula<M> as Video>::render_size_pixels(border);
+    let (width, height) = <UlaPAL<M> as Video>::render_size_pixels(border);
     //... ✂
     while is_running() {
         spectrum.update_keyboard( update_keys );
