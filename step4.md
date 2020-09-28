@@ -312,7 +312,7 @@ fn run<C: Cpu, M: ZxMemory, P, J>(
 For the most flexible solution - we need something that allows us to have methods implemented separately for different kind of types... wait... haven't I just described the Rust's traits? Let's follow that train of thought:
 
 ```rust
-trait DeviceAccess {
+trait JoystickAccess {
     type JoystickInterface: JoystickInterface;
     // Universal joystick interface access
     fn joystick_interface(&mut self) -> Option<&mut Self::JoystickInterface> {
@@ -321,18 +321,16 @@ trait DeviceAccess {
 }
 ```
 
-We would call it `JoystickAccess` but, let me ensure you, this trait will be extended later for other kinds of devices.
-
 Fine. So how do we implement it for `ZxSpectrum`?
 
 ```rust
 // implement a default device for completness
-impl<C: Cpu, M: ZxMemory> DeviceAccess for ZxSpectrum<C, M> {
+impl<C: Cpu, M: ZxMemory> JoystickAccess for ZxSpectrum<C, M> {
     type JoystickInterface = NullJoystickDevice;
 }
 
 // implement a joystick device
-impl<C, M, P, J> DeviceAccess for ZxSpectrum<C, M, JoystickBusDevice<P, J, TerminatorDevice>>
+impl<C, M, P, J> JoystickAccess for ZxSpectrum<C, M, JoystickBusDevice<P, J, TerminatorDevice>>
     where C: Cpu,
           M: ZxMemory,
           P: PortAddress,
@@ -354,11 +352,11 @@ fn run<C: Cpu, M: ZxMemory, D: BusDevice>(
         env: HostEnvironment,
     ) -> Result<Option<ModelReq>>
     where Ula<M, D>: ControlUnit,
-          ZxSpectrum<C, M, D>: DeviceAccess
+          ZxSpectrum<C, M, D>: JoystickAccess
     //... ✂
 ```
 
-... by adding the condition that `ZxSpectrum<C, M, D>` must implement `DeviceAccess`.
+... by adding the condition that `ZxSpectrum<C, M, D>` must implement `JoystickAccess`.
 
 Phew! This is getting a bit intense. But thanks to this approach, your program will compile and run whether you instantiate our Spectrum with a joystick ...
 
@@ -399,10 +397,10 @@ First, we need to import it:
 type OptionalBusDevice<D> = spectrusty::bus::OptionalBusDevice<D, TerminatorDevice>;
 ```
 
-Next, we'll add one method for plugging the joystick in or out to the `DeviceAccess` trait:
+Next, we'll add one method for plugging the joystick in or out to the `JoystickAccess` trait:
 
 ```rust
-trait DeviceAccess {
+trait JoystickAccess {
     //... ✂
     // Does nothing by default.
     fn toggle_joystick(&mut self) {}
@@ -416,7 +414,7 @@ trait DeviceAccess {
 type PluggableJoyBusDevice<P, J> = OptionalBusDevice<
                                 JoystickBusDevice<P, J, TerminatorDevice>>;
 
-impl<C, M, P, J> DeviceAccess for ZxSpectrum<C, M, PluggableJoyBusDevice<P, J>>
+impl<C, M, P, J> JoystickAccess for ZxSpectrum<C, M, PluggableJoyBusDevice<P, J>>
     where C: Cpu,
           M: ZxMemory,
           P: PortAddress,
@@ -450,7 +448,7 @@ Let's now add the ability to toggle the joystick presence in the input handler:
 ```rust
 impl<C: Cpu, M: ZxMemory, D: BusDevice> ZxSpectrum<C, M, D>
     where Ula<M, D>: ControlUnit,
-          Self: DeviceAccess
+          Self: JoystickAccess
 {
     //... ✂
     fn update_on_user_request(
@@ -465,7 +463,7 @@ impl<C: Cpu, M: ZxMemory, D: BusDevice> ZxSpectrum<C, M, D>
 }
 ```
 
-And yes, we need to indicate where the `toggle_joystick` method comes from. Hence the constraint `Self: DeviceAccess` has been added.
+And yes, we need to indicate where the `toggle_joystick` method comes from. Hence the constraint `Self: JoystickAccess` has been added.
 
 And finally, we can change the line where you create the first instance of `ZxSpectrum`. It determines which device will be used for the rest of the program:
 
@@ -502,10 +500,10 @@ Instead of [KempstonJoystickDevice], there is another, a more specialized joysti
 
 Which has an implementation of [BusDevice] and encapsulates the [JoystickSelect] `enum` which determines joystick implementation currently in use.
 
-Because we have a new capability - we can select a joystick device to be used, and because it would be nice if we could display the name of the current joystick, we'll add new methods to our `DeviceAccess` trait:
+Because we have a new capability - we can select a joystick device to be used, and because it would be nice if we could display the name of the current joystick, we'll add new methods to our `JoystickAccess` trait:
 
 ```rust
-trait DeviceAccess {
+trait JoystickAccess {
     type JoystickInterface: JoystickInterface + ?Sized;
     //... ✂
     fn select_joystick(&mut self, _joy: usize) {}
@@ -523,7 +521,7 @@ type PluggableMultiJoyBusDevice = OptionalBusDevice<
                                         MultiJoystickBusDevice<
                                             TerminatorDevice>>;
 
-impl<C, M> DeviceAccess for ZxSpectrum<C, M, PluggableMultiJoyBusDevice>
+impl<C, M> JoystickAccess for ZxSpectrum<C, M, PluggableMultiJoyBusDevice>
     where C: Cpu, M: ZxMemory
 {
     type JoystickInterface = dyn JoystickInterface;
