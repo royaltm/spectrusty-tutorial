@@ -77,7 +77,7 @@ See: [https://blueoakcouncil.org/license/1.0.0](https://blueoakcouncil.org/licen
 [Rust]: https://www.rust-lang.org/
 [Cargo]: https://crates.io/
 [RUSTUP]: https://www.rust-lang.org/learn/get-started#installing-rust
-[trait system]: https://doc.rust-lang.org/book/ch19-03-advanced-traits.html
+[trait system]: https://doc.rust-lang.org/book/ch10-02-traits.html
 [structs]: https://doc.rust-lang.org/book/ch05-01-defining-structs.html
 [enums]: https://doc.rust-lang.org/book/ch06-01-defining-an-enum.html
 [generic types]: https://doc.rust-lang.org/book/ch10-00-generics.html

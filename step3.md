@@ -5,7 +5,7 @@ This is a part of the [tutorial] for the [SPECTRUSTY] library.
 
 In this part you can learn how to load and save data using `.tap` files.
 
-![Step 3](ingame-step3.png)
+[![Step 3](ingame-step3.png)][horace-goes-skiing]
 
 Step 3 - R Tape loading error
 -----------------------------
@@ -387,7 +387,7 @@ Let's then implement the `info` method that returns a status string. It should b
 
 Finally, you may now `SAVE` and `LOAD` programs and code with the TAP files.
 
-![Step 3](loading-step3.png)
+[![Loading](loading-step3.png)][horace-goes-skiing]
 
 But these games can load for so many minutes. I remember waiting patiently, fingers crossed, fearing the dread of the `R Tape Loading Error`. Today we don't have such a luxury, time flies differently, so it seems.
 
@@ -773,7 +773,7 @@ As the final touch, you may update the `info` method to show the status of the n
 
 Aaaand it's done. You may now enjoy in your emulator some of ZX Spectrum software that wasn't written exclusively by you.
 
-![Step 3](finish-step3.png)
+[![Finish](finish-step3.png)][horace-goes-skiing]
 
 
 ### Example
@@ -825,3 +825,4 @@ Back to [index][tutorial].
 [another implementation]: https://github.com/royaltm/spectrusty/blob/da109d100b5e983746658a63d5b4ee3265ad985a/examples/zxspectrum-common/src/spectrum.rs#L283
 [pulse decoder]: https://docs.rs/spectrusty-formats/*/spectrusty_formats/tap/pulse/index.html
 [spectrusty-utils]: https://docs.rs/spectrusty-utils/
+[horace-goes-skiing]: https://worldofspectrum.org/archive/software/games/horace-goes-skiing-sinclair-research-ltd
