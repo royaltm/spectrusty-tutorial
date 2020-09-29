@@ -55,11 +55,11 @@ then you are good to go.
 Tutorial steps
 --------------
 
-* [Step 1 - Baby steps](step1.md)
-* [Step 2 - Buzz on](step2.md)
-* [Step 3 - R Tape loading error](step3.md)
-* [Step 4 - Plug that stick](step4.md)
-* [Step 5 - 128](step5.md)
+* [Step 1 - Baby steps](step1.md), you can learn how to build a minimal working emulator.
+* [Step 2 - Buzz on](step2.md), you can learn how to make your emulator emit sound.
+* [Step 3 - R Tape loading error](step3.md), you can learn how to load and save data using files.
+* [Step 4 - Plug that stick](step4.md), you can learn how add peripherals to your emulator.
+* [Step 5 - 128](step5.md), you can learn how to add different models with more peripherals.
 * Step 6 - ...
 
 [![ZX Spectrum keyboard layout][keyboard]][keyboard]
