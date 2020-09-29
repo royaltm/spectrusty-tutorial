@@ -730,6 +730,7 @@ Back to [index][tutorial].
 [peripherals::ay]: https://docs.rs/spectrusty/*/spectrusty/peripherals/ay/index.html
 [spectrusty-utils::keyboard]: https://docs.rs/spectrusty-utils/*/spectrusty_utils/keyboard/index.html
 [serial128]: https://docs.rs/spectrusty/*/spectrusty/bus/ay/serial128/index.html
+[Ay3_8912Keypad]: https://docs.rs/spectrusty/*/spectrusty/bus/ay/serial128/type.Ay3_8912Keypad.html
 [Blep]: https://docs.rs/spectrusty/*/spectrusty/audio/trait.Blep.html
 [BlepStereo]: https://docs.rs/spectrusty/*/spectrusty/audio/struct.BlepStereo.html
 [BusDevice::Timestamp]: https://docs.rs/spectrusty/*/spectrusty/bus/trait.BusDevice.html#associatedtype.Timestamp
@@ -742,6 +743,7 @@ Back to [index][tutorial].
 [Ula128VidFrame]: https://docs.rs/spectrusty/*/spectrusty/chip/ula128/struct.Ula128VidFrame.html
 [UlaAudioFrame]: https://docs.rs/spectrusty/*/spectrusty/audio/trait.UlaAudioFrame.html
 [UlaCommon]: https://docs.rs/spectrusty/*/spectrusty/chip/trait.UlaCommon.html
+[UlaPAL]: https://docs.rs/spectrusty/*/spectrusty/chip/ula/type.UlaPAL.html
 [VFNullDevice]: https://docs.rs/spectrusty/*/spectrusty/bus/type.VFNullDevice.html
 [VFrameTs]: https://docs.rs/spectrusty/*/spectrusty/clock/struct.VFrameTs.html
 [VideoFrame]: https://docs.rs/spectrusty/*/spectrusty/video/trait.VideoFrame.html
