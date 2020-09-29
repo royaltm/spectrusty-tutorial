@@ -506,7 +506,7 @@ fn run<C: Cpu, U>(
 }
 ```
 
-The method's signature has changed, and the more elaborate constraint is needed as we are now using a generic `U` type instead of `UlaPAL` struct. Next, we have to make room for the audio frames in the `blep` buffer. Different chipsets can have a different number of cycles per frame, and so the duration of the single-frame pass can change. Lastly, we need to add a way to pass keyboard events to the [128 keypad][SerialKeypad].
+The method's signature has changed, and the more elaborate constraint is needed as we are now using a generic `U` type instead of `UlaPAL` struct. Next, we have to make room for the audio frames in the `blep` buffer. Different chipsets can have a different number of cycles per frame, and so the duration of the single-frame pass can change. Lastly, we need to add a way to provide keyboard events to the [128 keypad][SerialKeypad].
 
 [UlaCommon] is a trait that groups various commonly used functions for ULA family chipsets. [UlaAudioFrame] is a trait that groups audio-related functions.
 
@@ -630,6 +630,11 @@ Wait... why only 2? What is the 3rd channel then?
 
 Thanks to [BlepStereo], which wraps a 2-channel [Blep]. Any channel indexed as 2 or higher will be directed to both channels simultaneously. So if the 1st channel (`0`) is left, the 2nd channel (`1`) is right, then the 3rd (`2`) is the center.
 
+When calling [AyAudioFrame::render_ay_audio_frame] we can assign the `Blep` audio channels to `A, B, C` channels of the sound generator. In our example, we have: `[0, 1, 2]`, which is `A=0` (left), `B=1` (right), `C=2` (center).
+This is the equivalent of `ACB` setting used in most of the emulators. For example if you want `ABC` you'll have to specify `A=0` (left), `B=2` (center), `C=1` (right), that is `[0, 2, 1]`. For monophonic output, you can use `[2, 2, 2]`.
+
+Another thing to consider is that [AyAmps] can be replaced with [AyFuseAmps], or for that matter your own implementation of [AmpLevels]. Just remember that 4 bits will be used - values 0 to 15.
+
 The last audio-related part to update is `produce_audio_frame`:
 
 ```rust
@@ -731,6 +736,7 @@ Back to [index][tutorial].
 [spectrusty-utils::keyboard]: https://docs.rs/spectrusty-utils/*/spectrusty_utils/keyboard/index.html
 [serial128]: https://docs.rs/spectrusty/*/spectrusty/bus/ay/serial128/index.html
 [Ay3_8912Keypad]: https://docs.rs/spectrusty/*/spectrusty/bus/ay/serial128/type.Ay3_8912Keypad.html
+[AyAudioFrame::render_ay_audio_frame]: https://docs.rs/spectrusty/*/spectrusty/peripherals/ay/audio/trait.AyAudioFrame.html#tymethod.render_ay_audio_frame
 [Blep]: https://docs.rs/spectrusty/*/spectrusty/audio/trait.Blep.html
 [BlepStereo]: https://docs.rs/spectrusty/*/spectrusty/audio/struct.BlepStereo.html
 [BusDevice::Timestamp]: https://docs.rs/spectrusty/*/spectrusty/bus/trait.BusDevice.html#associatedtype.Timestamp
