@@ -18,7 +18,7 @@ Step 5 - 128
 * an [AY-3-8910 Programmable Sound Processor](https://en.wikipedia.org/wiki/General_Instrument_AY-3-8910)
 * .. with an [RS-232](https://en.wikipedia.org/wiki/RS-232) and an [external keypad](http://www.fruitcake.plus.com/Sinclair/Spectrum128/Keypad/Spectrum128Keypad.htm).
 
-We are going to skip the `RS-232`, but otherwise we'll add a 128k model to the emulator that features all of the above.
+We are going to skip the `RS-232` in this tutorial. But otherwise, we'll add a 128k model to the emulator that features all of the above.
 
 First, update imports:
 
@@ -58,7 +58,7 @@ use spectrusty_utils::{
 };
 ```
 
-Next, we'll refactor the `ZxSpectrum` struct, by replacing the `UlaPAL` with a generic `U` parameter:
+Next, let's refactor the `ZxSpectrum` struct by replacing `UlaPAL` with a generic `U` parameter:
 
 ```rust
 #[derive(Default)]
@@ -71,9 +71,9 @@ struct ZxSpectrum<C: Cpu, U> {
 }
 ```
 
-The `reset_request` property works similar to `nmi_request`.
+The `reset_request` property works similarly to `nmi_request`.
 
-We'll define a specialized [Ula128] with an implementation of AY-3-8910 PSG connected to the keypad via its IOA port.
+[Ula128] provides a chipset implementation for ZX Spectrum 128k models. But we also need an emulator of [AY-3-8910 PSG][peripherals::ay] connected to the keypad via its IOA port. As you already know, we can "plug" it in as a static [bus device][serial128]. Let's create a new type `Ula128AyKeypad<D>`, for convenience. It will be used as our 128k chipset type:
 
 ```rust
 // a specialized AY-3-8910 bus device with a keypad
@@ -84,10 +84,14 @@ type Ula128AyKeypad<D=VFNullDevice<Ula128VidFrame>> = Ula128<
                                     >;
 ```
 
-We need to specify the [Ula128VidFrame] so the device can be used with [Ula128].
-We'll also use [VFNullDevice] instead of `TerminatorDevice` from the previous step.
+The exposed `D` parameter can be substituted by a device connected to the PSG as its [NextDevice].
+By default, `D` is [`VFNullDevice<Ula128VidFrame>`][VFNullDevice] that works as a chain terminator. We are using it instead of `TerminatorDevice` from the previous step because we can't use the same devices with [UlaPAL] and [Ula128]. This is because their [ControlUnit] implementation uses different [timestamps][BusDevice::Timestamp].
 
-Now for the helper types:
+The timestamp type used by different ULA implementations is [`VFrameTs<V: VideoFrame>`][VFrameTs]. But their concrete types differ with respect to `V`. The specialized type [Ay3_8912Keypad] is defined in a way that it only requires a single parameter [`V: VideoFrame`][VideoFrame].
+
+So for the device to be used with [Ula128], it needs to use the `VFrameTs<Ula128VidFrame>` timestamp. Hence [Ula128VidFrame] is specified as `V`.
+
+Now, let's define generic models:
 
 ```rust
 type ZxSpectrum16k<C, D> = ZxSpectrum<C, UlaPAL<Memory16k, D>>;
@@ -95,7 +99,7 @@ type ZxSpectrum48k<C, D> = ZxSpectrum<C, UlaPAL<Memory48k, D>>;
 type ZxSpectrum128k<C, D> = ZxSpectrum<C, Ula128AyKeypad<D>>;
 ```
 
-Because we'll be using chipsets that are using different [VideoFrame] implementations, we can't use the same devices for all of them. This is because their [BusDevice::Timestamp] will be also different. Instead, let's define a new type for the pluggable joystick that better suits these circumstances:
+Since we can't use the same exact device types for all of the models, we must redefine new-types of our peripherals so they will be covariant on `V`.
 
 ```rust
 // a pluggable joystick with run-time selectable joystick types
@@ -106,9 +110,9 @@ type PluggableMultiJoyBusDevice<V> = OptionalBusDevice<
                                     >;
 ```
 
-The `OptionalBusDevice` new-type defined in the previous chapter should be deleted.
+The `OptionalBusDevice` new-type defined in the previous chapter should be deleted. We are using here [`OptionalBusDevice<D, N>`][OptionalBusDevice].
 
-For the sake of simplicity, let's make the model enum less generic, by removing the `D` parameter.
+For the sake of simplicity, let's make the model enum less generic by removing the `D` parameter.
 
 ```rust
 enum ZxSpectrumModel<C: Cpu> {
@@ -124,7 +128,7 @@ enum ZxSpectrumModel<C: Cpu> {
 }
 ```
 
-... and add a new variant to `ModelReq`:
+Let's not forget about `ModelReq`:
 
 ```rust
 #[derive(Debug, Clone, Copy)]
@@ -135,7 +139,7 @@ enum ModelReq {
 }
 ```
 
-Because 128k model uses different ROM, again for the sake of simplicity we'll embed the ROM binaries in the target executable, instead of loading them in run time.
+Because the 128k model uses different ROM, for the sake of simplicity, let's embed the ROM binaries in the executable, instead of loading them in run time.
 
 ```rust
 // add ROMS to the binary resources
@@ -144,7 +148,9 @@ static ROM128_0: &[u8] = include_bytes!("../resources/roms/128-0.rom");
 static ROM128_1: &[u8] = include_bytes!("../resources/roms/128-1.rom");
 ```
 
-Let's also create dedicated `new_with_rom` methods for initializing each of the spectrum model types:
+You may download ROM files from [here](https://github.com/royaltm/spectrusty/tree/master/resources).
+
+Let's also create dedicated methods for initializing each of the model types, concerning different ROMs:
 
 ```rust
 impl<C: Cpu, M: ZxMemory, D: BusDevice> ZxSpectrum<C, UlaPAL<M, D>>
@@ -178,9 +184,9 @@ impl<C: Cpu, D: BusDevice> ZxSpectrum<C, Ula128AyKeypad<D>>
 
 ### Device access
 
-Perhaps it's time to refactor access to the joystick interface. We also need a way to access the [128 keypad][SerialKeypad] to connect it with the user keyboard.
+Perhaps it's time to refactor access to joysticks. We also need a way to access the [128 keypad][SerialKeypad] to make it work with the user keyboard.
 
-The `JoystickAccess` trait hasn't changed, I'll just include it here for completness:
+The `JoystickAccess` trait doesn't need to be changed. I'll just list it here for reference:
 
 ```rust
 trait JoystickAccess {
@@ -197,7 +203,7 @@ trait JoystickAccess {
 }
 ```
 
-We will be changing it's implementation though, that's for sure. But instead of implementing it for different types of `ZxSpectrum` we'll make a single generic implementation using an intermediate trait.
+Nevertheless, it has to be reimplemented. But instead of doing it for each `ZxSpectrum` type, let's write a single implementation using an intermediate:
 
 ```rust
 type SerialKeypad128 = SerialKeypad<VFrameTs<Ula128VidFrame>>;
@@ -217,9 +223,9 @@ trait DeviceAccess {
 }
 ```
 
-`DeviceAccess` will be implemented directly on the chipset instead of model struct and will give us a conditional access to joystick as well as to the [128 keypad][SerialKeypad].
+`DeviceAccess` will be implemented directly on the chipset instead of the model struct and will give us conditional access to the joystick device as well as to the [128 keypad][SerialKeypad].
 
-Having an intermediate ready, we can now implement `JoystickAccess`.
+Having defined an intermediate, we can now implement `JoystickAccess`.
 
 ```rust
 impl<C: Cpu, U: UlaCommon> JoystickAccess for ZxSpectrum<C, U>
@@ -230,7 +236,10 @@ impl<C: Cpu, U: UlaCommon> JoystickAccess for ZxSpectrum<C, U>
 {
     type JoystickInterface = dyn JoystickInterface;
 
-    fn joystick_interface(&mut self) -> Option<&mut Self::JoystickInterface> {
+    fn joystick_interface(
+            &mut self
+        ) -> Option<&mut Self::JoystickInterface>
+    {
         let sub_joy = self.state.sub_joy;
         self.ula.joystick_bus_device_mut().and_then(|joy_bus_dev| {
             joy_bus_dev.as_deref_mut()
@@ -257,9 +266,9 @@ impl<C: Cpu, U: UlaCommon> JoystickAccess for ZxSpectrum<C, U>
 }
 ```
 
-The implementation is similar to the one used in the step 4. But this time we are using methods of `DeviceAccess` trait to get access to the very specific `DeviceAccess::JoystickDevice` implementation. This is reflected in the `where` condition set for the generic type `U`.
+The implementation is similar to the one used in [step 4]. But this time, we are using methods of `DeviceAccess` trait to get access to the very specific `DeviceAccess::JoystickDevice` implementation. This is reflected in the `where` condition set for the generic type `U`.
 
-We'll see in a moment why this is needed, when we get to implementing the `DeviceAccess` trait.
+Time to get busy with `DeviceAccess`:
 
 ```rust
 // implement for Ula with a default device for completness
@@ -268,12 +277,18 @@ impl<M: ZxMemory> DeviceAccess for UlaPAL<M> {
 }
 
 // implement for Ula with a joystick device
-impl<M: ZxMemory> DeviceAccess for UlaPAL<M, PluggableMultiJoyBusDevice<UlaVideoFrame>> {
+impl<M: ZxMemory> DeviceAccess for UlaPAL<M,
+                                PluggableMultiJoyBusDevice<UlaVideoFrame>>
+{
     type JoystickDevice = PluggableMultiJoyBusDevice<UlaVideoFrame>;
 
-    fn joystick_bus_device_mut(&mut self) -> Option<&mut Self::JoystickDevice> {
+    fn joystick_bus_device_mut(
+            &mut self
+        ) -> Option<&mut Self::JoystickDevice>
+    {
         Some(self.bus_device_mut())
     }
+
     fn joystick_bus_device_ref(&self) -> Option<&Self::JoystickDevice> {
         Some(self.bus_device_ref())
     }
@@ -289,22 +304,28 @@ impl DeviceAccess for Ula128AyKeypad {
 }
 
 // implement for Ula128 with a joystick device
-impl DeviceAccess for Ula128AyKeypad<PluggableMultiJoyBusDevice<Ula128VidFrame>> {
+impl DeviceAccess for Ula128AyKeypad<
+                            PluggableMultiJoyBusDevice<Ula128VidFrame>> {
     type JoystickDevice = PluggableMultiJoyBusDevice<Ula128VidFrame>;
 
-    fn joystick_bus_device_mut(&mut self) -> Option<&mut Self::JoystickDevice> {
+    fn joystick_bus_device_mut(
+            &mut self
+        ) -> Option<&mut Self::JoystickDevice>
+    {
         Some(self.bus_device_mut().next_device_mut())
     }
+
     fn joystick_bus_device_ref(&self) -> Option<&Self::JoystickDevice> {
         Some(self.bus_device_ref().next_device_ref())
     }
+
     fn keypad128_mut(&mut self) -> Option<&mut SerialKeypad128> {
         Some(&mut self.bus_device_mut().ay_io.port_a.serial1)
     }
 }
 ```
 
-As you may see the joystick device for [Ula128] is positioned slightly deeper in the device chain, because we made its first device a sound processor. The [128 keypad][SerialKeypad] is connected to the PSG's IO port `A`. 128k ROM routines are using this port for connecting to both the keypad (AUX - serial port 1) and the [RS-232][Rs232Io] (SER - serial port 2). But in this example we won't be using the second serial port for the RS-232 connection. You can check [this example](https://github.com/royaltm/spectrusty/tree/master/examples/sdl2-zxspectrum) to see how to implement both.
+As we already know the joystick device for [Ula128] is positioned slightly deeper in the device chain, because we made its first device a sound processor. The [128 keypad][SerialKeypad] is connected to the PSG's IO port `A`. 128k ROM routines are using this port for connecting to both the keypad (AUX - serial port 1) and the [RS-232][Rs232Io] (SER - serial port 2). But in this example we won't be using the second serial port for the RS-232 connection. You can check [this example](https://github.com/royaltm/spectrusty/tree/master/examples/sdl2-zxspectrum) to see how to implement both.
 
 
 ### Hot-swap
@@ -694,12 +715,19 @@ Back to [index][tutorial].
 [minifb]: https://crates.io/crates/minifb
 [cpal]: https://crates.io/crates/cpal
 [sword-of-ianna]: https://github.com/fjpena/sword-of-ianna-zx
+[peripherals::ay]: https://docs.rs/spectrusty/*/spectrusty/peripherals/ay/index.html
+[OptionalBusDevice]: https://docs.rs/spectrusty/0.1.0/spectrusty/bus/struct.OptionalBusDevice.html
+[serial128]: https://docs.rs/spectrusty/0.1.0/spectrusty/bus/ay/serial128/index.html
 [Blep]: https://docs.rs/spectrusty/*/spectrusty/audio/trait.Blep.html
 [BlepStereo]: https://docs.rs/spectrusty/*/spectrusty/audio/struct.BlepStereo.html
 [BusDevice::Timestamp]: https://docs.rs/spectrusty/*/spectrusty/bus/trait.BusDevice.html#associatedtype.Timestamp
+[ControlUnit]: https://docs.rs/spectrusty/0.1.0/spectrusty/chip/trait.ControlUnit.html#associatedtype.BusDevice
+[NextDevice]: https://docs.rs/spectrusty/0.1.0/spectrusty/bus/trait.BusDevice.html#associatedtype.NextDevice
 [Rs232Io]: https://docs.rs/spectrusty/0.1.0/spectrusty/bus/ay/serial128/struct.Rs232Io.html
 [SerialKeypad]: https://docs.rs/spectrusty/*/spectrusty/peripherals/serial/struct.SerialKeypad.html
 [Ula128]: https://docs.rs/spectrusty/*/spectrusty/chip/ula128/struct.Ula128.html
 [Ula128VidFrame]: https://docs.rs/spectrusty/*/spectrusty/chip/ula128/struct.Ula128VidFrame.html
 [VFNullDevice]: https://docs.rs/spectrusty/*/spectrusty/bus/type.VFNullDevice.html
+[VFrameTs]: https://docs.rs/spectrusty/*/spectrusty/clock/struct.VFrameTs.html
 [VideoFrame]: https://docs.rs/spectrusty/*/spectrusty/video/trait.VideoFrame.html
+[step 4]: step4.html
