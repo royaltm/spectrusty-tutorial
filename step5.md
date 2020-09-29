@@ -89,7 +89,7 @@ type Ula128AyKeypad<D=VFNullDevice<Ula128VidFrame>> = Ula128<
 The exposed `D` parameter can be substituted by a device connected to the PSG as its [NextDevice].
 By default, `D` is [`VFNullDevice<Ula128VidFrame>`][VFNullDevice] that works as a chain terminator. We are using it instead of `TerminatorDevice` from the previous step because we can't use the same devices with [UlaPAL] and [Ula128]. This is because their [ControlUnit] implementation uses different [timestamps][BusDevice::Timestamp].
 
-The timestamp type used by different ULA implementations is [`VFrameTs<V: VideoFrame>`][VFrameTs]. But their concrete types differ with respect to `V`. The specialized type [Ay3_8912Keypad] is defined in a way that it only requires a single parameter [`V: VideoFrame`][VideoFrame].
+The timestamp type used by different ULA implementations is [`VFrameTs<V: VideoFrame>`][VFrameTs]. But their concrete types differ with respect to `V`. The specialized type [Ay3_8912Keypad] is defined in a way that it only requires a single parameter [`V: VideoFrame`][VideoFrame] besides `D`.
 
 So for the device to be used with [Ula128], it needs to use the `VFrameTs<Ula128VidFrame>` timestamp. Hence [Ula128VidFrame] is specified as `V`.
 
@@ -141,7 +141,7 @@ enum ModelReq {
 }
 ```
 
-Because the 128k model uses different ROM, for the sake of simplicity, let's embed the ROM binaries in the executable, instead of loading them in run time.
+Because the 128k model uses different ROM again, for the sake of simplicity, let's embed the ROM binaries in the executable, instead of loading them in run time.
 
 ```rust
 // add ROMS to the binary resources
@@ -268,7 +268,7 @@ impl<C: Cpu, U: UlaCommon> JoystickAccess for ZxSpectrum<C, U>
 }
 ```
 
-The implementation is similar to the one used in [step 4]. But this time, we are using methods of `DeviceAccess` trait to get access to the very specific `DeviceAccess::JoystickDevice` implementation. This is reflected in the `where` condition set for the generic type `U`.
+The implementation is similar to the one used in [step 4][step4-joystick-access-impl]. But this time, we are using methods of `DeviceAccess` trait to get access to the very specific `DeviceAccess::JoystickDevice` implementation. This is reflected in the `where` condition set for the generic type `U`.
 
 Time to get busy with `DeviceAccess`:
 
@@ -747,4 +747,4 @@ Back to [index][tutorial].
 [VFNullDevice]: https://docs.rs/spectrusty/*/spectrusty/bus/type.VFNullDevice.html
 [VFrameTs]: https://docs.rs/spectrusty/*/spectrusty/clock/struct.VFrameTs.html
 [VideoFrame]: https://docs.rs/spectrusty/*/spectrusty/video/trait.VideoFrame.html
-[step 4]: step4.html
+[step4-joystick-access-impl]: step4.html#joystick-access-impl
