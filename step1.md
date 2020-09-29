@@ -3,7 +3,7 @@ SPECTRUSTY Tutorial
 
 This is a part of the [tutorial] for the [SPECTRUSTY] library.
 
-In this part you can learn how to build a minimal working emulator.
+In this step, you can learn how to build a minimal working emulator.
 
 ![Step 1](example-step1.png)
 

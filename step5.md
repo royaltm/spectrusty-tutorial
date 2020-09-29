@@ -3,9 +3,10 @@ SPECTRUSTY Tutorial
 
 This is a part of the [tutorial] for the [SPECTRUSTY] library.
 
-In this part you can learn how to add different ZX Spectrum models with more peripherals.
+In this step, you can learn how to add different ZX Spectrum models with more peripherals.
 
-[![Step 5](example-step5.png)][sword-of-ianna]
+![Step 5](example-step5.png)
+
 
 Step 5 - 128
 ------------
@@ -172,6 +173,8 @@ impl<C: Cpu, D: BusDevice> ZxSpectrum<C, Ula128AyKeypad<D>>
 }
 ```
 
+[![Splash](splash-step5.png)][sword-of-ianna]
+
 
 ### Device access
 
@@ -303,8 +306,6 @@ impl DeviceAccess for Ula128AyKeypad<PluggableMultiJoyBusDevice<Ula128VidFrame>>
 
 As you may see the joystick device for [Ula128] is positioned slightly deeper in the device chain, because we made its first device a sound processor. The [128 keypad][SerialKeypad] is connected to the PSG's IO port `A`. 128k ROM routines are using this port for connecting to both the keypad (AUX - serial port 1) and the [RS-232][Rs232Io] (SER - serial port 2). But in this example we won't be using the second serial port for the RS-232 connection. You can check [this example](https://github.com/royaltm/spectrusty/tree/master/examples/sdl2-zxspectrum) to see how to implement both.
 
-[![Iana](menu-step5.png)][sword-of-ianna]
-
 
 ### Hot-swap
 
@@ -434,6 +435,8 @@ impl<C: Cpu> ZxSpectrumModel<C> {
     }
 }
 ```
+
+[![Iana](menu-step5.png)][sword-of-ianna]
 
 
 ### Keypad

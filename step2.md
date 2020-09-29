@@ -3,7 +3,7 @@ SPECTRUSTY Tutorial
 
 This is a part of the [tutorial] for the [SPECTRUSTY] library.
 
-In this part you can learn how to make your emulator emit sound.
+In this step, you can learn how to make your emulator emit sound.
 
 ![Step 2](example-step2.png)
 

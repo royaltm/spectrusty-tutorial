@@ -3,7 +3,7 @@ SPECTRUSTY Tutorial
 
 This is a part of the [tutorial] for the [SPECTRUSTY] library.
 
-In this part you can learn how add peripherals to your emulator.
+In this step, you can learn how add peripherals to your emulator.
 
 [![Step 4](example-step4.png)][deathchase]
 

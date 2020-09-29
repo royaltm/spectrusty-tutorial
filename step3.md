@@ -3,7 +3,7 @@ SPECTRUSTY Tutorial
 
 This is a part of the [tutorial] for the [SPECTRUSTY] library.
 
-In this part you can learn how to load and save data using `.tap` files.
+In this step, you can learn how to load and save data using `.tap` files.
 
 [![Step 3](ingame-step3.png)][horace-goes-skiing]
 
