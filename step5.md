@@ -325,12 +325,12 @@ impl DeviceAccess for Ula128AyKeypad<
 }
 ```
 
-As we already know the joystick device for [Ula128] is positioned slightly deeper in the device chain, because we made its first device a sound processor. The [128 keypad][SerialKeypad] is connected to the PSG's IO port `A`. 128k ROM routines are using this port for connecting to both the keypad (AUX - serial port 1) and the [RS-232][Rs232Io] (SER - serial port 2). But in this example we won't be using the second serial port for the RS-232 connection. You can check [this example](https://github.com/royaltm/spectrusty/tree/master/examples/sdl2-zxspectrum) to see how to implement both.
+As we already know, the joystick device for [Ula128] is positioned slightly deeper in the device chain because we made its first device a sound processor. The [128 keypad][SerialKeypad] is connected to the PSG's IO port `A`. 128k ROM routines are using this port for connecting to both the keypad (AUX - serial port 1) and the [RS-232][Rs232Io] (SER - serial port 2). But in this example, we won't be using the second serial port for the RS-232 connection. You can check [this example](https://github.com/royaltm/spectrusty/tree/master/examples/sdl2-zxspectrum) to see how to implement both.
 
 
 ### Hot-swap
 
-Having dealt with the device access, now we can focus on the hot-swap function, as it will be slightly more challenging.
+Having dealt with devices, now we can focus on the hot-swap function, as it will be slightly more challenging.
 
 ```rust
 use std::io::{self, Read};
@@ -382,9 +382,9 @@ impl<C: Cpu> From<ZxSpectrumModel<C>> for ZxSpectrum<C, Ula128AyKeypad<
 
 ```
 
-We need to deal with the fact that the last bank of 128 memory can be swapped. Instead of copying slices of linear memory, we'll use a reader to copy the content of visible 3 pages of RAM. So the reader can have different implementation with regards to the model used.
+We need to deal with the fact that the last bank of RAM can be swapped in the 128k model. Instead of copying slices of linear memory, we'll use a reader to copy the content of the last visible 3 pages of RAM. So the reader can have different implementation concerning the model used.
 
-Now for the implementation of model enum helpers:
+Now, for the implementation of model enum helpers:
 
 ```rust
 impl<C: Cpu> ZxSpectrumModel<C> {
@@ -411,7 +411,7 @@ impl<C: Cpu> ZxSpectrumModel<C> {
             ),
         }        
     }
-    // returns a dynamicly dispatched reader from RAM
+    // returns a dynamically dispatched reader from RAM
     fn read_ram<'a>(&'a self) -> Box<dyn Read + 'a> {
         match self {
             ZxSpectrumModel::Spectrum16(spec16) =>
@@ -460,7 +460,7 @@ impl<C: Cpu> ZxSpectrumModel<C> {
 [![Iana](menu-step5.png)][sword-of-ianna]
 
 
-### Keypad
+### 128 Keypad
 
 There are a few things that need to be updated in the `run` method:
 
@@ -469,7 +469,10 @@ fn run<C: Cpu, U>(
         spectrum: &mut ZxSpectrum<C, U>,
         env: HostEnvironment,
     ) -> Result<Action>
-    where U: UlaCommon + UlaAudioFrame<BandLim> + DeviceAccess + HostConfig,
+    where U: UlaCommon
+           + UlaAudioFrame<BandLim>
+           + DeviceAccess
+           + HostConfig,
           ZxSpectrum<C, U>: JoystickAccess
 {
     //... ✂
@@ -501,10 +504,13 @@ fn run<C: Cpu, U>(
 }
 ```
 
-Its signature has changed and the more elaborate constraint is needed as we are now using a generic `U` type instead of `UlaPAL` struct. Next, we have to make room for the audio frames in the `blep` buffer. Different chipsets can have different number of cycles per frame, and so the duration of the single frame can change. Lastly, we need to add a way to pass keyboard events to the [128 keypad][SerialKeypad].
+The method's signature has changed, and the more elaborate constraint is needed as we are now using a generic `U` type instead of `UlaPAL` struct. Next, we have to make room for the audio frames in the `blep` buffer. Different chipsets can have a different number of cycles per frame, and so the duration of the single-frame pass can change. Lastly, we need to add a way to pass keyboard events to the [128 keypad][SerialKeypad].
 
-A few methods in `ZxSpectrum` implementation only changes slightly and we have a new method: `update_keypad128_keys`.
-The signature of course reflects the changes:
+[UlaCommon] is a trait that groups various commonly used functions for ULA family chipsets. [UlaAudioFrame] is a trait that groups audio-related functions.
+
+A few methods in `ZxSpectrum` only need to be changed slightly, and we have a new function - `update_keypad128_keys`.
+
+The implementation header, of course, reflects the changes:
 
 ```rust
 impl<C: Cpu, U> ZxSpectrum<C, U>
@@ -561,7 +567,7 @@ impl<C: Cpu, U> ZxSpectrum<C, U>
 
 ### Stereo
 
-Because we have an additional source of the sound, we need to update the `render_audio` method.
+Because we have an additional source of the sound - a PSG, we need to update the `render_audio` method.
 
 ```rust
 impl<C: Cpu, U> ZxSpectrum<C, U>
@@ -598,8 +604,8 @@ impl<C: Cpu, U> ZxSpectrum<C, U>
 }
 ```
 
-But our implementation of [Blep] has only a single channel...and now we use 3 different channels?
-Yes, so we need to change it too:
+You might have noticed that our `BandLim` is initialized with a single channel only. But now, we somehow need 3?
+Well... we need to change it:
 
 ```rust
 // the type of the Blep implementation
@@ -611,14 +617,18 @@ and initialize it:
 ```rust
 fn main() -> Result<()> {
     //... ✂
-    let mut blep = BlepStereo::build(0.8)(BandLimited::<BlepDelta>::new(2));
+    let mut blep = BlepStereo::build(0.8)(
+                        BandLimited::<BlepDelta>::new(2)
+                   );
     //... ✂
 }
 ```
 
-But where the 3rd channel comes from? It is thanks to [BlepStereo], which takes a 2 channel [Blep] and any channel exceeding the 2 will be directed to both channels simultanously. So if channel `0` is left, channel `1` is right then `2` is the center.
+Wait... why only 2? What is the 3rd channel then?
 
-The last audio related part to update is `produce_audio_frame`:
+Thanks to [BlepStereo], which wraps a 2-channel [Blep]. Any channel indexed as 2 or higher will be directed to both channels simultaneously. So if the 1st channel (`0`) is left, the 2nd channel (`1`) is right, then the 3rd (`2`) is the center.
+
+The last audio-related part to update is `produce_audio_frame`:
 
 ```rust
 fn produce_audio_frame<T: AudioSample + FromSample<BlepDelta>>(
@@ -646,9 +656,9 @@ fn produce_audio_frame<T: AudioSample + FromSample<BlepDelta>>(
 }
 ```
 
-We assume the `output_channels` for the host audio is 2 or more.
+We somewhat assume that the number of output channels for the host audio is at least 2.
 
-And for the last the `main` function. We'll also change the default model to 128k.
+And at last the `main` function. Let's also change the default model to 128k.
 
 ```rust
 fn main() -> Result<()> {
@@ -716,17 +726,19 @@ Back to [index][tutorial].
 [cpal]: https://crates.io/crates/cpal
 [sword-of-ianna]: https://github.com/fjpena/sword-of-ianna-zx
 [peripherals::ay]: https://docs.rs/spectrusty/*/spectrusty/peripherals/ay/index.html
-[OptionalBusDevice]: https://docs.rs/spectrusty/0.1.0/spectrusty/bus/struct.OptionalBusDevice.html
-[serial128]: https://docs.rs/spectrusty/0.1.0/spectrusty/bus/ay/serial128/index.html
+[OptionalBusDevice]: https://docs.rs/spectrusty/*/spectrusty/bus/struct.OptionalBusDevice.html
+[serial128]: https://docs.rs/spectrusty/*/spectrusty/bus/ay/serial128/index.html
 [Blep]: https://docs.rs/spectrusty/*/spectrusty/audio/trait.Blep.html
 [BlepStereo]: https://docs.rs/spectrusty/*/spectrusty/audio/struct.BlepStereo.html
 [BusDevice::Timestamp]: https://docs.rs/spectrusty/*/spectrusty/bus/trait.BusDevice.html#associatedtype.Timestamp
-[ControlUnit]: https://docs.rs/spectrusty/0.1.0/spectrusty/chip/trait.ControlUnit.html#associatedtype.BusDevice
-[NextDevice]: https://docs.rs/spectrusty/0.1.0/spectrusty/bus/trait.BusDevice.html#associatedtype.NextDevice
-[Rs232Io]: https://docs.rs/spectrusty/0.1.0/spectrusty/bus/ay/serial128/struct.Rs232Io.html
+[ControlUnit]: https://docs.rs/spectrusty/*/spectrusty/chip/trait.ControlUnit.html#associatedtype.BusDevice
+[NextDevice]: https://docs.rs/spectrusty/*/spectrusty/bus/trait.BusDevice.html#associatedtype.NextDevice
+[Rs232Io]: https://docs.rs/spectrusty/*/spectrusty/bus/ay/serial128/struct.Rs232Io.html
 [SerialKeypad]: https://docs.rs/spectrusty/*/spectrusty/peripherals/serial/struct.SerialKeypad.html
 [Ula128]: https://docs.rs/spectrusty/*/spectrusty/chip/ula128/struct.Ula128.html
 [Ula128VidFrame]: https://docs.rs/spectrusty/*/spectrusty/chip/ula128/struct.Ula128VidFrame.html
+[UlaAudioFrame]: https://docs.rs/spectrusty/*/spectrusty/audio/trait.UlaAudioFrame.html
+[UlaCommon]: https://docs.rs/spectrusty/*/spectrusty/chip/trait.UlaCommon.html
 [VFNullDevice]: https://docs.rs/spectrusty/*/spectrusty/bus/type.VFNullDevice.html
 [VFrameTs]: https://docs.rs/spectrusty/*/spectrusty/clock/struct.VFrameTs.html
 [VideoFrame]: https://docs.rs/spectrusty/*/spectrusty/video/trait.VideoFrame.html
