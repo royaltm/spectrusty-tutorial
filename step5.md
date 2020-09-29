@@ -735,8 +735,11 @@ Back to [index][tutorial].
 [peripherals::ay]: https://docs.rs/spectrusty/*/spectrusty/peripherals/ay/index.html
 [spectrusty-utils::keyboard]: https://docs.rs/spectrusty-utils/*/spectrusty_utils/keyboard/index.html
 [serial128]: https://docs.rs/spectrusty/*/spectrusty/bus/ay/serial128/index.html
+[AmpLevels]: https://docs.rs/spectrusty/*/spectrusty/audio/trait.AmpLevels.html
 [Ay3_8912Keypad]: https://docs.rs/spectrusty/*/spectrusty/bus/ay/serial128/type.Ay3_8912Keypad.html
+[AyAmps]: https://docs.rs/spectrusty/*/spectrusty/peripherals/ay/audio/struct.AyAmps.html
 [AyAudioFrame::render_ay_audio_frame]: https://docs.rs/spectrusty/*/spectrusty/peripherals/ay/audio/trait.AyAudioFrame.html#tymethod.render_ay_audio_frame
+[AyFuseAmps]: https://docs.rs/spectrusty/*/spectrusty/peripherals/ay/audio/struct.AyFuseAmps.html
 [Blep]: https://docs.rs/spectrusty/*/spectrusty/audio/trait.Blep.html
 [BlepStereo]: https://docs.rs/spectrusty/*/spectrusty/audio/struct.BlepStereo.html
 [BusDevice::Timestamp]: https://docs.rs/spectrusty/*/spectrusty/bus/trait.BusDevice.html#associatedtype.Timestamp
