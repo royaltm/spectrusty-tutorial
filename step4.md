@@ -523,8 +523,6 @@ trait JoystickAccess {
 
 You may have noticed that we have lifted the [`Sized`][Sized] constraint that is enabled by default. This will become necessary in a moment.
 
-<a name="joystick-access-impl"></a>
-
 ```rust
 // a pluggable joystick with run-time selectable joystick types
 type PluggableMultiJoyBusDevice = OptionalBusDevice<

@@ -268,7 +268,7 @@ impl<C: Cpu, U: UlaCommon> JoystickAccess for ZxSpectrum<C, U>
 }
 ```
 
-The implementation is similar to the one used in [step 4][step4-joystick-access-impl]. But this time, we are using methods of `DeviceAccess` trait to get access to the very specific `DeviceAccess::JoystickDevice` implementation. This is reflected in the `where` condition set for the generic type `U`.
+The implementation is similar to the one used in [step 4][step4-make-it-selectable]. But this time, we are using methods of `DeviceAccess` trait to get access to the very specific `DeviceAccess::JoystickDevice` implementation. This is reflected in the `where` condition set for the generic type `U`.
 
 Time to get busy with `DeviceAccess`:
 
@@ -747,4 +747,4 @@ Back to [index][tutorial].
 [VFNullDevice]: https://docs.rs/spectrusty/*/spectrusty/bus/type.VFNullDevice.html
 [VFrameTs]: https://docs.rs/spectrusty/*/spectrusty/clock/struct.VFrameTs.html
 [VideoFrame]: https://docs.rs/spectrusty/*/spectrusty/video/trait.VideoFrame.html
-[step4-joystick-access-impl]: step4.html#joystick-access-impl
+[step4-make-it-selectable]: step4.html#make-it-selectable
