@@ -18,7 +18,7 @@ Step 5 - 128
 * an [AY-3-8910 Programmable Sound Processor](https://en.wikipedia.org/wiki/General_Instrument_AY-3-8910)
 * .. with an [RS-232](https://en.wikipedia.org/wiki/RS-232) and an [external keypad](http://www.fruitcake.plus.com/Sinclair/Spectrum128/Keypad/Spectrum128Keypad.htm).
 
-We are going to skip the `RS-232` in this tutorial. But otherwise, we'll add a 128k model to the emulator that features all of the above.
+I'm going to skip the `RS-232` in this tutorial. But otherwise, we'll add a 128k model to the emulator that features all of the above.
 
 First, update imports:
 
@@ -51,12 +51,14 @@ use spectrusty::peripherals::{
 };
 use spectrusty_utils::{
     tap::{Tape, Tap},
-    keyboard::minifb::{
+    keyboard::$implementation::{
         update_keymap, update_keypad_keys,
         update_joystick_from_key_event
     }
 };
 ```
+
+Where [`$implementation`][spectrusty-utils::keyboard] is one of the available keyboard implementations for event loops.
 
 Next, let's refactor the `ZxSpectrum` struct by replacing `UlaPAL` with a generic `U` parameter:
 
@@ -726,13 +728,14 @@ Back to [index][tutorial].
 [cpal]: https://crates.io/crates/cpal
 [sword-of-ianna]: https://github.com/fjpena/sword-of-ianna-zx
 [peripherals::ay]: https://docs.rs/spectrusty/*/spectrusty/peripherals/ay/index.html
-[OptionalBusDevice]: https://docs.rs/spectrusty/*/spectrusty/bus/struct.OptionalBusDevice.html
+[spectrusty-utils::keyboard]: https://docs.rs/spectrusty-utils/*/spectrusty_utils/keyboard/index.html
 [serial128]: https://docs.rs/spectrusty/*/spectrusty/bus/ay/serial128/index.html
 [Blep]: https://docs.rs/spectrusty/*/spectrusty/audio/trait.Blep.html
 [BlepStereo]: https://docs.rs/spectrusty/*/spectrusty/audio/struct.BlepStereo.html
 [BusDevice::Timestamp]: https://docs.rs/spectrusty/*/spectrusty/bus/trait.BusDevice.html#associatedtype.Timestamp
 [ControlUnit]: https://docs.rs/spectrusty/*/spectrusty/chip/trait.ControlUnit.html#associatedtype.BusDevice
 [NextDevice]: https://docs.rs/spectrusty/*/spectrusty/bus/trait.BusDevice.html#associatedtype.NextDevice
+[OptionalBusDevice]: https://docs.rs/spectrusty/*/spectrusty/bus/struct.OptionalBusDevice.html
 [Rs232Io]: https://docs.rs/spectrusty/*/spectrusty/bus/ay/serial128/struct.Rs232Io.html
 [SerialKeypad]: https://docs.rs/spectrusty/*/spectrusty/peripherals/serial/struct.SerialKeypad.html
 [Ula128]: https://docs.rs/spectrusty/*/spectrusty/chip/ula128/struct.Ula128.html
