@@ -642,6 +642,8 @@ Select Kempston joystick from menu and type `LOAD ""` to load the game. Then pre
 
 ### Next
 
+[Step 5 - 128](step5.md).
+
 Back to [index][tutorial].
 
 <script>var clicky_site_ids = clicky_site_ids || []; clicky_site_ids.push(101270192);</script>
