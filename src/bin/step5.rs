@@ -515,10 +515,14 @@ impl<C: Cpu, U: UlaCommon> JoystickAccess for ZxSpectrum<C, U>
 {
     type JoystickInterface = dyn JoystickInterface;
 
-    fn joystick_interface(&mut self) -> Option<&mut Self::JoystickInterface> {
+    fn joystick_interface(
+            &mut self
+        ) -> Option<&mut Self::JoystickInterface>
+    {
         let sub_joy = self.state.sub_joy;
         self.ula.joystick_bus_device_mut().and_then(|joy_bus_dev| {
-            joy_bus_dev.as_deref_mut().and_then(|j| j.joystick_interface(sub_joy))
+            joy_bus_dev.as_deref_mut()
+                       .and_then(|j| j.joystick_interface(sub_joy))
         })
     }
 
@@ -608,7 +612,7 @@ impl<C: Cpu> ZxSpectrumModel<C> {
             ),
         }        
     }
-    // returns a dynamicly dispatched reader from RAM
+    // returns a dynamically dispatched reader from RAM
     fn read_ram<'a>(&'a self) -> Box<dyn Read + 'a> {
         match self {
             ZxSpectrumModel::Spectrum16(spec16) =>
