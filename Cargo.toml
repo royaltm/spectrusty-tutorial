@@ -1,6 +1,6 @@
 [package]
 name = "spectrusty-tutorial"
-version = "0.1.0"
+version = "0.2.0"
 authors = ["Rafal Michalski <royaltm75@gmail.com>"]
 edition = "2018"
 publish = false
@@ -21,14 +21,14 @@ log = "0.4"
 simple_logger = "1.9.0"
 
 [dependencies.spectrusty]
-version = "*"
+version = "0.2"
 features = ["audio", "cpal"]
-path = "../spectrusty"
+# path = "../spectrusty"
 
 [dependencies.spectrusty-utils]
-version = "*"
+version = "0.2"
 features = ["minifb"]
-path = "../spectrusty/spectrusty-utils"
+# path = "../spectrusty/spectrusty-utils"
 
 [build-dependencies]
 reqwest = { version = "0.10", features = ["blocking"] }
