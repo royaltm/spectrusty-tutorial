@@ -253,7 +253,7 @@ impl<C: Cpu, U> ZxSpectrum<C, U>
             if chunks != 0 {
                 info!("Saved: {} TAP chunks", chunks);
             }
-            if self.state.flash_tape && !self.state.turbo || self.state.turbo {
+            if self.state.turbo || self.state.flash_tape  {
                 // is the state of the pulse decoder idle?
                 self.state.turbo = !writer.get_ref().is_idle();
             }
@@ -333,10 +333,9 @@ impl<C: Cpu, U> ZxSpectrum<C, U>
             info!("Auto STOP: End of TAPE");
         }
 
-        if self.nmi_request {
-            if self.ula.nmi(&mut self.cpu) {
-                self.nmi_request = false;
-            }
+        if self.nmi_request && self.ula.nmi(&mut self.cpu) {
+            // clear nmi_request only if the triggering succeeded
+            self.nmi_request = false;
         }
         if let Some(hard) = self.reset_request.take() {
             self.ula.reset(&mut self.cpu, hard);
@@ -790,8 +789,12 @@ fn process_keyboard_window_events<F: FnMut(KeyEvent)>(window: &Window, mut updat
             update(KeyEvent { key, pressed, shift_down, ctrl_down });
         }
     };
-    window.get_keys_pressed(KeyRepeat::No).map(|keys| handle_update(keys, true));
-    window.get_keys_released().map(|keys| handle_update(keys, false));
+    if let Some(keys) = window.get_keys_pressed(KeyRepeat::No) {
+        handle_update(keys, true)
+    }
+    if let Some(keys) = window.get_keys_released() {
+        handle_update(keys, false)
+    }
 }
 
 // transform the frame buffer to the format needed by render_video
