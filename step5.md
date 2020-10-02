@@ -31,18 +31,19 @@ use spectrusty::audio::{
     host::cpal::AudioHandleAnyFormat
 };
 use spectrusty::bus::{
-    BusDevice, VFNullDevice, OptionalBusDevice,
+    BusDevice, NullDevice,
     joystick::{
         MultiJoystickBusDevice, JoystickSelect,
         JoystickInterface
     }
 };
+use spectrusty::clock::FTs;
 use spectrusty::chip::{
     ControlUnit, HostConfig, MemoryAccess,
     UlaCommon, Ula128MemFlags, UlaControl,
     ThreadSyncTimer,
-    ula::{UlaPAL, UlaVideoFrame},
-    ula128::{Ula128, Ula128VidFrame}
+    ula::UlaPAL,
+    ula128::Ula128
 };
 use spectrusty::peripherals::{
     ZXKeyboardMap,
@@ -81,19 +82,13 @@ The `reset_request` property works similarly to `nmi_request`.
 // a specialized AY-3-8910 bus device with a keypad
 use spectrusty::bus::ay::serial128::Ay3_8912Keypad;
 // define Ula128 with a static mandatory device
-type Ula128AyKeypad<D=VFNullDevice<Ula128VidFrame>> = Ula128<
-                                        Ay3_8912Keypad<Ula128VidFrame, D>
-                                    >;
+type Ula128AyKeypad<D=TerminatorDevice> = Ula128<Ay3_8912Keypad<D>>;
 ```
 
 The exposed `D` parameter can be substituted by a device connected to the PSG as its [NextDevice].
-By default, `D` is [`VFNullDevice<Ula128VidFrame>`][VFNullDevice] that works as a chain terminator. We are using it instead of `TerminatorDevice` from the previous step because we can't use the same devices with [UlaPAL] and [Ula128]. This is because their [ControlUnit] implementation uses different [timestamps][BusDevice::Timestamp].
+By default, `D` is our `TerminatorDevice`.
 
-The timestamp type used by different ULA implementations is [`VFrameTs<V: VideoFrame>`][VFrameTs]. But their concrete types differ with respect to `V`. The specialized type [Ay3_8912Keypad] is defined in a way that it only requires a single parameter [`V: VideoFrame`][VideoFrame] besides `D`.
-
-So for the device to be used with [Ula128], it needs to use the `VFrameTs<Ula128VidFrame>` timestamp. Hence [Ula128VidFrame] is specified as `V`.
-
-Now, let's define generic models:
+Now, let's again define generic models:
 
 ```rust
 type ZxSpectrum16k<C, D> = ZxSpectrum<C, UlaPAL<Memory16k, D>>;
@@ -101,36 +96,48 @@ type ZxSpectrum48k<C, D> = ZxSpectrum<C, UlaPAL<Memory48k, D>>;
 type ZxSpectrum128k<C, D> = ZxSpectrum<C, Ula128AyKeypad<D>>;
 ```
 
-Since we can't use the same exact device types for all of the models, we must redefine new-types of our peripherals so they will be covariant on `V`.
+Now, let's look again at our pluggable-multi-joystick device:
 
 ```rust
 // a pluggable joystick with run-time selectable joystick types
-type PluggableMultiJoyBusDevice<V> = OptionalBusDevice<
-                                        MultiJoystickBusDevice<
-                                                VFNullDevice<V>>,
-                                        VFNullDevice<V>
-                                    >;
+type PluggableMultiJoyBusDevice = OptionalBusDevice<MultiJoystickBusDevice<TerminatorDevice>>;
 ```
 
-The `OptionalBusDevice` new-type defined in the previous chapter should be deleted. We are using here [`OptionalBusDevice<D, N>`][OptionalBusDevice].
+The last device in the chain determines the type of the [timestamp][BusDevice::Timestamp] used by the whole device chain.
 
-For the sake of simplicity, let's make the model enum less generic by removing the `D` parameter.
+So, let's look at our `TerminatorDevice` from the previous chapter:
 
 ```rust
-enum ZxSpectrumModel<C: Cpu> {
-    Spectrum16(
-        ZxSpectrum16k<C, PluggableMultiJoyBusDevice<UlaVideoFrame>>
-    ),
-    Spectrum48(
-        ZxSpectrum48k<C, PluggableMultiJoyBusDevice<UlaVideoFrame>>
-    ),
-    Spectrum128(
-        ZxSpectrum128k<C, PluggableMultiJoyBusDevice<Ula128VidFrame>>
-    ),
+type TerminatorDevice = NullDevice<VFrameTs<UlaVideoFrame>>;
+```
+
+Aha! It appears that our device chain is using [`VFrameTs<UlaVideoFrame>`][VFrameTs] as its [BusDevice::Timestamp].
+
+This can be a problem with our new 128k model, because [Ula128] uses different [VideoFrame]: [Ula128VidFrame].
+
+How do we solve this? Can't we just use another one that can work with all of our models?
+
+Let's take a look at the [ControlUnit][ControlUnit-impl-Ula] implementation of [Ula]. It appears that we can use a different type for the timestamp. As long as it satisfies the condition: `From<VFrameTs<V: VideoFrame>>`.
+
+As always, you can define your own timestamp type, but we already have one that fulfills such a requirement: [FTs].
+
+```rust
+type TerminatorDevice = NullDevice<FTs>;
+```
+
+That's it. Now we can use either `TerminatorDevice` or `PluggableMultiJoyBusDevice` with any of our generic models.
+
+Let's now extend the model enum:
+
+```rust
+enum ZxSpectrumModel<C: Cpu, D: BusDevice=TerminatorDevice> {
+    Spectrum16(ZxSpectrum16k<C, D>),
+    Spectrum48(ZxSpectrum48k<C, D>),
+    Spectrum128(ZxSpectrum128k<C, D>),
 }
 ```
 
-Let's not forget about `ModelReq`:
+... and `ModelReq`:
 
 ```rust
 #[derive(Debug, Clone, Copy)]
@@ -208,7 +215,7 @@ trait JoystickAccess {
 Nevertheless, it has to be reimplemented. But instead of doing it for each `ZxSpectrum` type, let's write a single implementation using an intermediate:
 
 ```rust
-type SerialKeypad128 = SerialKeypad<VFrameTs<Ula128VidFrame>>;
+type SerialKeypad128 = SerialKeypad<FTs>;
 
 trait DeviceAccess {
     type JoystickDevice;
@@ -231,10 +238,7 @@ Having defined an intermediate, we can now implement `JoystickAccess`.
 
 ```rust
 impl<C: Cpu, U: UlaCommon> JoystickAccess for ZxSpectrum<C, U>
-    where U: DeviceAccess<JoystickDevice = PluggableMultiJoyBusDevice<
-                                            <U as Video>::VideoFrame
-                                           >
-             >
+    where U: DeviceAccess<JoystickDevice = PluggableMultiJoyBusDevice>
 {
     type JoystickInterface = dyn JoystickInterface;
 
@@ -275,14 +279,12 @@ Time to get busy with `DeviceAccess`:
 ```rust
 // implement for Ula with a default device for completness
 impl<M: ZxMemory> DeviceAccess for UlaPAL<M> {
-    type JoystickDevice = PluggableMultiJoyBusDevice<UlaVideoFrame>;
+    type JoystickDevice = PluggableMultiJoyBusDevice;
 }
 
 // implement for Ula with a joystick device
-impl<M: ZxMemory> DeviceAccess for UlaPAL<M,
-                                PluggableMultiJoyBusDevice<UlaVideoFrame>>
-{
-    type JoystickDevice = PluggableMultiJoyBusDevice<UlaVideoFrame>;
+impl<M: ZxMemory> DeviceAccess for UlaPAL<M, PluggableMultiJoyBusDevice> {
+    type JoystickDevice = PluggableMultiJoyBusDevice;
 
     fn joystick_bus_device_mut(
             &mut self
@@ -298,7 +300,7 @@ impl<M: ZxMemory> DeviceAccess for UlaPAL<M,
 
 // implement for Ula128 with a default device for completness
 impl DeviceAccess for Ula128AyKeypad {
-    type JoystickDevice = PluggableMultiJoyBusDevice<Ula128VidFrame>;
+    type JoystickDevice = PluggableMultiJoyBusDevice;
 
     fn keypad128_mut(&mut self) -> Option<&mut SerialKeypad128> {
         Some(&mut self.bus_device_mut().ay_io.port_a.serial1)
@@ -306,9 +308,8 @@ impl DeviceAccess for Ula128AyKeypad {
 }
 
 // implement for Ula128 with a joystick device
-impl DeviceAccess for Ula128AyKeypad<
-                            PluggableMultiJoyBusDevice<Ula128VidFrame>> {
-    type JoystickDevice = PluggableMultiJoyBusDevice<Ula128VidFrame>;
+impl DeviceAccess for Ula128AyKeypad<PluggableMultiJoyBusDevice> {
+    type JoystickDevice = PluggableMultiJoyBusDevice;
 
     fn joystick_bus_device_mut(
             &mut self
@@ -337,51 +338,50 @@ Having dealt with devices, now we can focus on the hot-swap function, as it will
 ```rust
 use std::io::{self, Read};
 
-impl<C: Cpu, M> From<ZxSpectrumModel<C>> for ZxSpectrum<C, UlaPAL<M,
-                                                PluggableMultiJoyBusDevice<
-                                                    UlaVideoFrame>>>
-    where M: ZxMemory + Default
+impl<C, D, M> From<ZxSpectrumModel<C, D>> for ZxSpectrum<C, UlaPAL<M, D>>
+    where C: Cpu,
+          D: BusDevice<Timestamp=FTs> + Default,
+          M: ZxMemory,
+          Self: Default
 {
-    fn from(model: ZxSpectrumModel<C>) -> Self {
+    fn from(model: ZxSpectrumModel<C, D>) -> Self {
         let border = model.border_color();
         let mut spectrum = Self::new_with_rom();
         let mem_rd = model.read_ram();
         let _ = spectrum.ula.memory_mut()
                             .load_into_mem(M::PAGE_SIZE as u16.., mem_rd);
-        let (cpu, joy, state) = model.into_cpu_joystick_and_state();
+        let (cpu, dev, state) = model.into_cpu_device_and_state();
         spectrum.cpu = cpu;
         spectrum.state = state;
         spectrum.ula.set_border_color(border);
-        **spectrum.ula.bus_device_mut() = joy.map(
-                                        MultiJoystickBusDevice::new_with);
+        *spectrum.ula.bus_device_mut() = dev;
         spectrum
     }
 }
 
-impl<C: Cpu> From<ZxSpectrumModel<C>> for ZxSpectrum<C, Ula128AyKeypad<
-                                                PluggableMultiJoyBusDevice<
-                                                    Ula128VidFrame>>>
+impl<C, D> From<ZxSpectrumModel<C, D>> for ZxSpectrum<C, Ula128AyKeypad<D>>
+    where C: Cpu,
+          D: BusDevice<Timestamp=FTs> + Default,
+          Self: Default
 {
-    fn from(model: ZxSpectrumModel<C>) -> Self {
+    fn from(model: ZxSpectrumModel<C, D>) -> Self {
         let border = model.border_color();
         let mut spectrum = Self::new_with_rom();
         let mem_rd = model.read_ram();
         let _ = spectrum.ula.memory_mut().load_into_mem(
                 <Ula128 as MemoryAccess>::Memory::PAGE_SIZE as u16..,
                 mem_rd);
-        let (cpu, joy, state) = model.into_cpu_joystick_and_state();
+        let (cpu, dev, state) = model.into_cpu_device_and_state();
         spectrum.cpu = cpu;
         spectrum.state = state;
         spectrum.ula.set_border_color(border);
-        **spectrum.ula.bus_device_mut().next_device_mut() = joy.map(
-                                        MultiJoystickBusDevice::new_with);
+        *spectrum.ula.bus_device_mut().next_device_mut() = dev;
         // lock in 48k mode until reset
         spectrum.ula.set_ula128_mem_port_value(Ula128MemFlags::ROM_BANK
-                                          |Ula128MemFlags::LOCK_MMU);
+                                              |Ula128MemFlags::LOCK_MMU);
         spectrum
     }
 }
-
 ```
 
 We need to deal with the fact that the last bank of RAM can be swapped in the 128k model. Instead of copying slices of linear memory, we'll use a reader to copy the content of the last visible 3 pages of RAM. So the reader can have different implementation concerning the model used.
@@ -389,26 +389,20 @@ We need to deal with the fact that the last bank of RAM can be swapped in the 12
 Now, for the implementation of model enum helpers:
 
 ```rust
-impl<C: Cpu> ZxSpectrumModel<C> {
-    fn into_cpu_joystick_and_state(
-            self
-        ) -> (C, Option<JoystickSelect>, EmulatorState)
-    {
+impl<C: Cpu, D> ZxSpectrumModel<C, D>
+    where D: BusDevice<Timestamp=FTs> + Default
+{
+    fn into_cpu_device_and_state(self) -> (C, D, EmulatorState) {
         match self {
             ZxSpectrumModel::Spectrum16(spec16) => (
-                spec16.cpu,
-                spec16.ula.into_bus_device().device.map(|d| d.joystick),
-                spec16.state
+                spec16.cpu, spec16.ula.into_bus_device(), spec16.state
             ),
             ZxSpectrumModel::Spectrum48(spec48) => (
-                spec48.cpu,
-                spec48.ula.into_bus_device().device.map(|d| d.joystick),
-                spec48.state
+                spec48.cpu, spec48.ula.into_bus_device(), spec48.state
             ),
             ZxSpectrumModel::Spectrum128(spec128) => (
                 spec128.cpu,
-                spec128.ula.into_bus_device()
-                           .into_next_device().device.map(|d| d.joystick),
+                spec128.ula.into_bus_device().into_next_device(),
                 spec128.state
             ),
         }        
@@ -671,7 +665,9 @@ And at last the `main` function. Let's also change the default model to 128k.
 fn main() -> Result<()> {
     //... ✂
     // build the hardware
-    let mut spec128 = ZxSpectrum128k::<Z80NMOS, _>::new_with_rom();
+    let mut spec128 = ZxSpectrum128k::<Z80NMOS,
+                                       PluggableMultiJoyBusDevice
+                                      >::new_with_rom();
     // if the user provided the file name
     if let Some(file_name) = tap_file_name {
         //... ✂
@@ -744,6 +740,8 @@ Back to [index][tutorial].
 [BlepStereo]: https://docs.rs/spectrusty/*/spectrusty/audio/struct.BlepStereo.html
 [BusDevice::Timestamp]: https://docs.rs/spectrusty/*/spectrusty/bus/trait.BusDevice.html#associatedtype.Timestamp
 [ControlUnit]: https://docs.rs/spectrusty/*/spectrusty/chip/trait.ControlUnit.html#associatedtype.BusDevice
+[ControlUnit-impl-Ula]: https://docs.rs/spectrusty/*/spectrusty/chip/trait.ControlUnit.html#impl-ControlUnit-3
+[FTs]: https://docs.rs/spectrusty/0.1.0/spectrusty/clock/type.FTs.html
 [NextDevice]: https://docs.rs/spectrusty/*/spectrusty/bus/trait.BusDevice.html#associatedtype.NextDevice
 [OptionalBusDevice]: https://docs.rs/spectrusty/*/spectrusty/bus/struct.OptionalBusDevice.html
 [Rs232Io]: https://docs.rs/spectrusty/*/spectrusty/bus/ay/serial128/struct.Rs232Io.html
@@ -753,7 +751,6 @@ Back to [index][tutorial].
 [UlaAudioFrame]: https://docs.rs/spectrusty/*/spectrusty/audio/trait.UlaAudioFrame.html
 [UlaCommon]: https://docs.rs/spectrusty/*/spectrusty/chip/trait.UlaCommon.html
 [UlaPAL]: https://docs.rs/spectrusty/*/spectrusty/chip/ula/type.UlaPAL.html
-[VFNullDevice]: https://docs.rs/spectrusty/*/spectrusty/bus/type.VFNullDevice.html
 [VFrameTs]: https://docs.rs/spectrusty/*/spectrusty/clock/struct.VFrameTs.html
 [VideoFrame]: https://docs.rs/spectrusty/*/spectrusty/video/trait.VideoFrame.html
 [step4-make-it-selectable]: step4.html#make-it-selectable

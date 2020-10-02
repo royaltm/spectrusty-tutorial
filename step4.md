@@ -144,7 +144,7 @@ impl<C, M, D> From<ZxSpectrumModel<C, D>> for ZxSpectrum<C, M, D>
     where C: Cpu,
           M: ZxMemory,
           D: BusDevice<Timestamp=VFrameTs<UlaVideoFrame>> + Default,
-          ZxSpectrum<C, M, D>: Default,
+          Self: Default,
 {
     fn from(model: ZxSpectrumModel<C, D>) -> Self {
         let border = model.border_color();
