@@ -222,11 +222,9 @@ That's it, for starters. Next, we need to extend the `run_frame` method so the T
             }
         }
 
-        if self.nmi_request {
-            if self.ula.nmi(&mut self.cpu) {
-                // clear nmi_request only if the triggering succeeded
-                self.nmi_request = false;
-            }
+        if self.nmi_request && self.ula.nmi(&mut self.cpu) {
+            // clear nmi_request only if the triggering succeeded
+            self.nmi_request = false;
         }
         self.ula.execute_next_frame(&mut self.cpu);
 
@@ -645,9 +643,7 @@ So here's our final `run_frame`:
             if chunks != 0 {
                 info!("Saved: {} TAP chunks", chunks);
             }
-            if self.state.flash_tape && !self.state.turbo ||
-                                         self.state.turbo
-            {
+            if self.state.turbo || self.state.flash_tape  {
                 // is the state of the pulse decoder idle?
                 self.state.turbo = !writer.get_ref().is_idle();
             }

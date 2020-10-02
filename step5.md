@@ -528,10 +528,9 @@ impl<C: Cpu, U> ZxSpectrum<C, U>
 
     fn run_frame(&mut self) -> Result<(FTs, bool)> {
         //... ✂
-        if self.nmi_request {
-            if self.ula.nmi(&mut self.cpu) {
-                self.nmi_request = false;
-            }
+        if self.nmi_request && self.ula.nmi(&mut self.cpu) {
+            // clear nmi_request only if the triggering succeeded
+            self.nmi_request = false;
         }
         if let Some(hard) = self.reset_request.take() {
             self.ula.reset(&mut self.cpu, hard);
