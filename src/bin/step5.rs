@@ -24,9 +24,9 @@ use spectrusty::audio::{
     host::cpal::AudioHandleAnyFormat
 };
 use spectrusty::z80emu::{Cpu, Z80NMOS};
-use spectrusty::clock::{FTs, VFrameTs};
+use spectrusty::clock::FTs;
 use spectrusty::bus::{
-    BusDevice, VFNullDevice, OptionalBusDevice,
+    BusDevice, NullDevice,
     joystick::{
         MultiJoystickBusDevice, JoystickSelect,
         JoystickInterface
@@ -37,8 +37,8 @@ use spectrusty::chip::{
     ControlUnit, HostConfig, MemoryAccess,
     UlaCommon, Ula128MemFlags, UlaControl,
     ThreadSyncTimer,
-    ula::{UlaPAL, UlaVideoFrame},
-    ula128::{Ula128, Ula128VidFrame}
+    ula::UlaPAL,
+    ula128::Ula128
 };
 use spectrusty::memory::{ZxMemory, Memory16k, Memory48k};
 use spectrusty::video::{
@@ -89,26 +89,23 @@ struct EmulatorState {
     sub_joy: usize
 }
 
-type SerialKeypad128 = SerialKeypad<VFrameTs<Ula128VidFrame>>;
+// our terminator for the device chain
+type TerminatorDevice = NullDevice<FTs>;
+// a terminated optional bus device
+type OptionalBusDevice<D> = spectrusty::bus::OptionalBusDevice<D, TerminatorDevice>;
+
+type SerialKeypad128 = SerialKeypad<FTs>;
 // define Ula128 with a static mandatory device
-type Ula128AyKeypad<D=VFNullDevice<Ula128VidFrame>> = Ula128<
-                                        Ay3_8912Keypad<Ula128VidFrame, D>
-                                    >;
+type Ula128AyKeypad<D=TerminatorDevice> = Ula128<Ay3_8912Keypad<D>>;
 
 type ZxSpectrum16k<C, D> = ZxSpectrum<C, UlaPAL<Memory16k, D>>;
 type ZxSpectrum48k<C, D> = ZxSpectrum<C, UlaPAL<Memory48k, D>>;
 type ZxSpectrum128k<C, D> = ZxSpectrum<C, Ula128AyKeypad<D>>;
 
-// a pluggable joystick with run-time selectable joystick types
-type PluggableMultiJoyBusDevice<V> = OptionalBusDevice<
-                                        MultiJoystickBusDevice<VFNullDevice<V>>,
-                                        VFNullDevice<V>
-                                     >;
-
-enum ZxSpectrumModel<C: Cpu> {
-    Spectrum16(ZxSpectrum16k<C, PluggableMultiJoyBusDevice<UlaVideoFrame>>),
-    Spectrum48(ZxSpectrum48k<C, PluggableMultiJoyBusDevice<UlaVideoFrame>>),
-    Spectrum128(ZxSpectrum128k<C, PluggableMultiJoyBusDevice<Ula128VidFrame>>),
+enum ZxSpectrumModel<C: Cpu, D: BusDevice=TerminatorDevice> {
+    Spectrum16(ZxSpectrum16k<C, D>),
+    Spectrum48(ZxSpectrum48k<C, D>),
+    Spectrum128(ZxSpectrum128k<C, D>),
 }
 
 #[derive(Debug, Clone, Copy)]
@@ -466,18 +463,25 @@ trait JoystickAccess {
     }
 }
 
+// a pluggable joystick with run-time selectable joystick types
+type PluggableMultiJoyBusDevice = OptionalBusDevice<MultiJoystickBusDevice<TerminatorDevice>>;
+
 // implement for Ula with a default device for completness
 impl<M: ZxMemory> DeviceAccess for UlaPAL<M> {
-    type JoystickDevice = PluggableMultiJoyBusDevice<UlaVideoFrame>;
+    type JoystickDevice = PluggableMultiJoyBusDevice;
 }
 
 // implement for Ula with a joystick device
-impl<M: ZxMemory> DeviceAccess for UlaPAL<M, PluggableMultiJoyBusDevice<UlaVideoFrame>> {
-    type JoystickDevice = PluggableMultiJoyBusDevice<UlaVideoFrame>;
+impl<M: ZxMemory> DeviceAccess for UlaPAL<M, PluggableMultiJoyBusDevice> {
+    type JoystickDevice = PluggableMultiJoyBusDevice;
 
-    fn joystick_bus_device_mut(&mut self) -> Option<&mut Self::JoystickDevice> {
+    fn joystick_bus_device_mut(
+            &mut self
+        ) -> Option<&mut Self::JoystickDevice>
+    {
         Some(self.bus_device_mut())
     }
+
     fn joystick_bus_device_ref(&self) -> Option<&Self::JoystickDevice> {
         Some(self.bus_device_ref())
     }
@@ -485,7 +489,7 @@ impl<M: ZxMemory> DeviceAccess for UlaPAL<M, PluggableMultiJoyBusDevice<UlaVideo
 
 // implement for Ula128 with a default device for completness
 impl DeviceAccess for Ula128AyKeypad {
-    type JoystickDevice = PluggableMultiJoyBusDevice<Ula128VidFrame>;
+    type JoystickDevice = PluggableMultiJoyBusDevice;
 
     fn keypad128_mut(&mut self) -> Option<&mut SerialKeypad128> {
         Some(&mut self.bus_device_mut().ay_io.port_a.serial1)
@@ -493,25 +497,27 @@ impl DeviceAccess for Ula128AyKeypad {
 }
 
 // implement for Ula128 with a joystick device
-impl DeviceAccess for Ula128AyKeypad<PluggableMultiJoyBusDevice<Ula128VidFrame>> {
-    type JoystickDevice = PluggableMultiJoyBusDevice<Ula128VidFrame>;
+impl DeviceAccess for Ula128AyKeypad<PluggableMultiJoyBusDevice> {
+    type JoystickDevice = PluggableMultiJoyBusDevice;
 
-    fn joystick_bus_device_mut(&mut self) -> Option<&mut Self::JoystickDevice> {
+    fn joystick_bus_device_mut(
+            &mut self
+        ) -> Option<&mut Self::JoystickDevice>
+    {
         Some(self.bus_device_mut().next_device_mut())
     }
+
     fn joystick_bus_device_ref(&self) -> Option<&Self::JoystickDevice> {
         Some(self.bus_device_ref().next_device_ref())
     }
+
     fn keypad128_mut(&mut self) -> Option<&mut SerialKeypad128> {
         Some(&mut self.bus_device_mut().ay_io.port_a.serial1)
     }
 }
 
 impl<C: Cpu, U: UlaCommon> JoystickAccess for ZxSpectrum<C, U>
-    where U: DeviceAccess<JoystickDevice = PluggableMultiJoyBusDevice<
-                                            <U as Video>::VideoFrame
-                                           >
-             >
+    where U: DeviceAccess<JoystickDevice = PluggableMultiJoyBusDevice>
 {
     type JoystickInterface = dyn JoystickInterface;
 
@@ -539,75 +545,70 @@ impl<C: Cpu, U: UlaCommon> JoystickAccess for ZxSpectrum<C, U>
     }
 
     fn current_joystick(&self) -> Option<&str> {
-        self.ula.joystick_bus_device_ref().and_then(|jbd| jbd.as_deref().map(Into::into))
+        self.ula.joystick_bus_device_ref()
+                .and_then(|jbd| jbd.as_deref().map(Into::into))
     }
 }
 
-impl<C: Cpu, M> From<ZxSpectrumModel<C>> for ZxSpectrum<C, UlaPAL<M,
-                                                PluggableMultiJoyBusDevice<
-                                                    UlaVideoFrame>>>
-    where M: ZxMemory + Default
+impl<C, D, M> From<ZxSpectrumModel<C, D>> for ZxSpectrum<C, UlaPAL<M, D>>
+    where C: Cpu,
+          D: BusDevice<Timestamp=FTs> + Default,
+          M: ZxMemory,
+          Self: Default
 {
-    fn from(model: ZxSpectrumModel<C>) -> Self {
+    fn from(model: ZxSpectrumModel<C, D>) -> Self {
         let border = model.border_color();
         let mut spectrum = Self::new_with_rom();
         let mem_rd = model.read_ram();
         let _ = spectrum.ula.memory_mut()
                             .load_into_mem(M::PAGE_SIZE as u16.., mem_rd);
-        let (cpu, joy, state) = model.into_cpu_joystick_and_state();
+        let (cpu, dev, state) = model.into_cpu_device_and_state();
         spectrum.cpu = cpu;
         spectrum.state = state;
         spectrum.ula.set_border_color(border);
-        **spectrum.ula.bus_device_mut() = joy.map(
-                                        MultiJoystickBusDevice::new_with);
+        *spectrum.ula.bus_device_mut() = dev;
         spectrum
     }
 }
 
-impl<C: Cpu> From<ZxSpectrumModel<C>> for ZxSpectrum<C, Ula128AyKeypad<
-                                                PluggableMultiJoyBusDevice<
-                                                    Ula128VidFrame>>>
+impl<C, D> From<ZxSpectrumModel<C, D>> for ZxSpectrum<C, Ula128AyKeypad<D>>
+    where C: Cpu,
+          D: BusDevice<Timestamp=FTs> + Default,
+          Self: Default
 {
-    fn from(model: ZxSpectrumModel<C>) -> Self {
+    fn from(model: ZxSpectrumModel<C, D>) -> Self {
         let border = model.border_color();
         let mut spectrum = Self::new_with_rom();
         let mem_rd = model.read_ram();
         let _ = spectrum.ula.memory_mut().load_into_mem(
                 <Ula128 as MemoryAccess>::Memory::PAGE_SIZE as u16..,
                 mem_rd);
-        let (cpu, joy, state) = model.into_cpu_joystick_and_state();
+        let (cpu, dev, state) = model.into_cpu_device_and_state();
         spectrum.cpu = cpu;
         spectrum.state = state;
         spectrum.ula.set_border_color(border);
-        **spectrum.ula.bus_device_mut().next_device_mut() = joy.map(
-                                        MultiJoystickBusDevice::new_with);
+        *spectrum.ula.bus_device_mut().next_device_mut() = dev;
         // lock in 48k mode until reset
         spectrum.ula.set_ula128_mem_port_value(Ula128MemFlags::ROM_BANK
-                                          |Ula128MemFlags::LOCK_MMU);
+                                              |Ula128MemFlags::LOCK_MMU);
         spectrum
     }
 }
 
-impl<C: Cpu> ZxSpectrumModel<C> {
-    fn into_cpu_joystick_and_state(
-            self
-        ) -> (C, Option<JoystickSelect>, EmulatorState)
-    {
+impl<C: Cpu, D> ZxSpectrumModel<C, D>
+    where D: BusDevice<Timestamp=FTs> + Default
+{
+    fn into_cpu_device_and_state(self) -> (C, D, EmulatorState) {
         match self {
             ZxSpectrumModel::Spectrum16(spec16) => (
-                spec16.cpu,
-                spec16.ula.into_bus_device().device.map(|d| d.joystick),
-                spec16.state
+                spec16.cpu, spec16.ula.into_bus_device(), spec16.state
             ),
             ZxSpectrumModel::Spectrum48(spec48) => (
-                spec48.cpu,
-                spec48.ula.into_bus_device().device.map(|d| d.joystick),
-                spec48.state
+                spec48.cpu, spec48.ula.into_bus_device(), spec48.state
             ),
             ZxSpectrumModel::Spectrum128(spec128) => (
                 spec128.cpu,
-                spec128.ula.into_bus_device()
-                           .into_next_device().device.map(|d| d.joystick),
+                spec128.ula.into_bus_device().into_next_device(),
                 spec128.state
             ),
         }        
@@ -959,7 +960,9 @@ fn main() -> Result<()> {
         BorderSize::Full
     };
     // build the hardware
-    let mut spec128 = ZxSpectrum128k::<Z80NMOS, _>::new_with_rom();
+    let mut spec128 = ZxSpectrum128k::<Z80NMOS,
+                                       PluggableMultiJoyBusDevice
+                                      >::new_with_rom();
     // if the user provided the file name
     if let Some(file_name) = tap_file_name {
         info!("Loading TAP file: {}", file_name);
