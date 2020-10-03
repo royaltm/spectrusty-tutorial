@@ -100,7 +100,9 @@ Now, let's look again at our pluggable-multi-joystick device:
 
 ```rust
 // a pluggable joystick with run-time selectable joystick types
-type PluggableMultiJoyBusDevice = OptionalBusDevice<MultiJoystickBusDevice<TerminatorDevice>>;
+type PluggableMultiJoyBusDevice = OptionalBusDevice<
+                                        MultiJoystickBusDevice<
+                                                TerminatorDevice>>;
 ```
 
 The last device in the chain determines the type of the [timestamp][BusDevice::Timestamp] used by the whole device chain.
