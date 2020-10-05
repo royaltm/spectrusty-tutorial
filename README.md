@@ -16,7 +16,7 @@ Both are best served with a [RUSTUP] utility. If you don't like the language sco
 
 To check if you can continue, you should be able to run the `cargo` utility by creating a new repository for your emulator program:
 
-```rust
+```
 cargo new my-spectrum-emu
 ```
 
@@ -27,6 +27,38 @@ Created binary (application) `my-spectrum-emu` package
 ```
 
 then you are good to [go][tutorial].
+
+
+Compilation
+-----------
+
+To compile all example steps, type:
+
+```
+cargo build --bins --release
+```
+
+Depending on your operating system, you may need additional dependencies installed.
+
+Please refer to the [minifb] and [cpal] crates documentation regarding those requirements.
+
+On macOS and MS Windows, except [Rust], you shouldn't need anything else.
+
+On Linux, some development packages are required.
+E.g., on a fresh Ubuntu, I've managed to compile it after:
+
+```
+# some essential development libraries
+sudo apt install gcc g++ libc6-dev libssl-dev
+
+# ALSA for cpal
+sudo apt install libasound2-dev
+
+# Wayland for minifb
+sudo apt install libxkbcommon-dev libwayland-cursor0 libwayland-dev
+```
+
+Unfortunately, menus are not supported on Linux.
 
 
 Licensing
@@ -43,3 +75,5 @@ Some TAP files in the [resources](resources/) directory are ZX Spectrum games th
 [Rust]: https://www.rust-lang.org/
 [Cargo]: https://crates.io/
 [RUSTUP]: https://www.rust-lang.org/learn/get-started#installing-rust
+[cpal]: https://github.com/rustaudio/cpal
+[minifb]: https://github.com/emoon/rust_minifb#build-instructions
