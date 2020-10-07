@@ -251,7 +251,7 @@ fn main() -> Result<()> {
     // some entropy in memory for nice visuals at boot
     spectrum.ula.memory_mut().fill_mem(.., random)?;
     // get the software
-    let rom_file = std::fs::File::open("resources/48.rom")?;
+    let rom_file = std::fs::File::open("resources/roms/48.rom")?;
     // put the software into the hardware
     spectrum.ula.memory_mut().load_into_rom(rom_file)?;
     //... ✂
