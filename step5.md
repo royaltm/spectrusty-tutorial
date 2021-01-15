@@ -747,6 +747,7 @@ Back to [index][tutorial].
 [OptionalBusDevice]: https://docs.rs/spectrusty/*/spectrusty/bus/struct.OptionalBusDevice.html
 [Rs232Io]: https://docs.rs/spectrusty/*/spectrusty/bus/ay/serial128/struct.Rs232Io.html
 [SerialKeypad]: https://docs.rs/spectrusty/*/spectrusty/peripherals/serial/struct.SerialKeypad.html
+[Ula]: https://docs.rs/spectrusty/*/spectrusty/chip/ula/struct.Ula.html
 [Ula128]: https://docs.rs/spectrusty/*/spectrusty/chip/ula128/struct.Ula128.html
 [Ula128VidFrame]: https://docs.rs/spectrusty/*/spectrusty/chip/ula128/struct.Ula128VidFrame.html
 [UlaAudioFrame]: https://docs.rs/spectrusty/*/spectrusty/audio/trait.UlaAudioFrame.html
