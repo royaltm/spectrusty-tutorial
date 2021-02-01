@@ -15,7 +15,7 @@ Examples for the tutorial on how to build emulators with the SPECTRUSTY library.
 
 [dependencies]
 cpal = "0.13.1"
-minifb = "0.19"
+minifb = "0.19.2"
 rand = "0.8"
 log = "0.4"
 simple_logger = "1.9.0"
@@ -32,6 +32,3 @@ features = ["minifb"]
 
 [build-dependencies]
 reqwest = { version = "0.11", features = ["blocking"] }
-
-[patch.crates-io]
-minifb = { git = "https://github.com/emoon/rust_minifb" }
