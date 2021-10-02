@@ -565,7 +565,7 @@ fn run<C: Cpu, M: ZxMemory>(
 
     fn is_running(window: &Window) -> bool {
         window.is_open() && !window.is_key_down(Key::Escape)
-    };
+    }
 
     // emulator main loop
     'main: while is_running(window) {
