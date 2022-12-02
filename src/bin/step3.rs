@@ -83,7 +83,7 @@ enum Action {
     Exit
 }
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 enum ModelReq {
     Spectrum16,
     Spectrum48,
@@ -486,15 +486,11 @@ fn open_window(title: &str, width: usize, height: usize) -> Result<Window> {
 fn update_keymap_from_window_events(window: &Window, mut cur: ZXKeyboardMap) -> ZXKeyboardMap {
     let shift_dn = window.is_key_down(Key::LeftShift) || window.is_key_down(Key::RightShift);
     let ctrl_dn = window.is_key_down(Key::LeftCtrl) || window.is_key_down(Key::RightCtrl);
-    if let Some(keys) = window.get_keys_pressed(KeyRepeat::No) {
-        for k in keys {
-            cur = update_keymap(cur, k, true, shift_dn, ctrl_dn);
-        }
+    for k in window.get_keys_pressed(KeyRepeat::No) {
+        cur = update_keymap(cur, k, true, shift_dn, ctrl_dn);
     }
-    if let Some(keys) = window.get_keys_released() {
-        for k in keys {
-            cur = update_keymap(cur, k, false, shift_dn, ctrl_dn);
-        }
+    for k in window.get_keys_released() {
+        cur = update_keymap(cur, k, false, shift_dn, ctrl_dn);
     }
     cur
 }
@@ -637,18 +633,34 @@ fn run<C: Cpu, M: ZxMemory>(
     Ok(Action::Exit)
 }
 
+fn show_help() -> Result<()> {
+    eprintln!("{}: [-16|48] [-b BORDER] [TAPFILE]",
+        std::env::args().next().as_deref().unwrap_or("step3"));
+    Ok(())
+}
+
 fn main() -> Result<()> {
     simple_logger::SimpleLogger::new().with_level(log::LevelFilter::Info).init()?;
     let mut args = std::env::args().skip(1);
-    // parsing the 1st command argument as path to the TAP file
-    let tap_file_name = args.next();
-    // parsing the 2nd command argument as a size of the border
-    let border: BorderSize = if let Some(arg) = args.next() {
-        arg.parse()?
+    let mut border = BorderSize::Full;
+    let mut model = ModelReq::Spectrum16;
+    let mut tap_file_name = None;
+    while let Some(arg) = args.next() {
+        match arg.as_str() {
+            "-16" =>  { model = ModelReq::Spectrum16; },
+            "-48" =>  { model = ModelReq::Spectrum48; },
+            "-b" => match args.next() {
+                Some(arg) => { border = arg.parse()?; },
+                None => return show_help(),
+            },
+            x if x == "" || x.starts_with("-") => return show_help(),
+            // parsing the 1st command argument as path to the TAP file
+            name => {
+                tap_file_name = Some(name.to_string());
+                break;
+            }
+        };
     }
-    else {
-        BorderSize::Full
-    };
     // build the hardware
     let mut spec16 = ZxSpectrum16k::<Z80NMOS>::default();
     // some entropy in memory for nice visuals
@@ -689,6 +701,10 @@ fn main() -> Result<()> {
     let mut blep = BandLim::new(1);
 
     let mut spectrum = ZxSpectrumModel::Spectrum16(spec16);
+
+    if model != ModelReq::Spectrum16 {
+        spectrum = spectrum.change_model(model);
+    }
 
     loop {
         use ZxSpectrumModel::*;

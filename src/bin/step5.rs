@@ -114,7 +114,7 @@ enum Action {
     Exit
 }
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 enum ModelReq {
     Spectrum16,
     Spectrum48,
@@ -789,12 +789,8 @@ fn process_keyboard_window_events<F: FnMut(KeyEvent)>(window: &Window, mut updat
             update(KeyEvent { key, pressed, shift_down, ctrl_down });
         }
     };
-    if let Some(keys) = window.get_keys_pressed(KeyRepeat::No) {
-        handle_update(keys, true)
-    }
-    if let Some(keys) = window.get_keys_released() {
-        handle_update(keys, false)
-    }
+    handle_update(window.get_keys_pressed(KeyRepeat::No), true);
+    handle_update(window.get_keys_released(), false);
 }
 
 // transform the frame buffer to the format needed by render_video
@@ -950,18 +946,52 @@ fn run<C: Cpu, U>(
     Ok(Action::Exit)
 }
 
+fn show_help() -> Result<()> {
+    eprintln!("{}: [-16|48|128] [-b BORDER] [-j JOYSTICK] [TAPFILE]",
+            std::env::args().next().as_deref().unwrap_or("step5"));
+    Ok(())
+}
+
 fn main() -> Result<()> {
     simple_logger::SimpleLogger::new().with_level(log::LevelFilter::Info).init()?;
     let mut args = std::env::args().skip(1);
-    // parsing the 1st command argument as path to the TAP file
-    let tap_file_name = args.next();
-    // parsing the 2nd command argument as a size of the border
-    let border: BorderSize = if let Some(arg) = args.next() {
-        arg.parse()?
+    let mut border = BorderSize::Full;
+    let mut model = ModelReq::Spectrum128;
+    let mut joystick = None;
+    let mut tap_file_name = None;
+    while let Some(arg) = args.next() {
+        match arg.as_str() {
+            "-16" =>  { model = ModelReq::Spectrum16; },
+            "-48" =>  { model = ModelReq::Spectrum48; },
+            "-128" => { model = ModelReq::Spectrum128; },
+            "-b" => match args.next() {
+                Some(arg) => { border = arg.parse()?; },
+                None => return show_help()
+            },
+            "-j" => if let Some(joy) = args.next() {
+                joystick = if joy.eq_ignore_ascii_case("N")  { None }
+                else if joy.eq_ignore_ascii_case("K") { Some(0) }
+                else if joy.eq_ignore_ascii_case("F") {  Some(1) }
+                else if joy.eq_ignore_ascii_case("S1") { Some(2) }
+                else if joy.eq_ignore_ascii_case("S2") { Some(3) }
+                else if joy.eq_ignore_ascii_case("C")  { Some(4) }
+                else {
+                    eprintln!("Unknown joystick: \"{}\", choose from: N|K|F|S1|S2|C", joy);
+                    return Ok(());
+                };
+            }
+            else {
+                return show_help();
+            },
+            x if x == "" || x.starts_with("-") => return show_help(),
+            // parsing the 1st command argument as path to the TAP file
+            name => {
+                tap_file_name = Some(name.to_string());
+                break;
+            }
+        };
     }
-    else {
-        BorderSize::Full
-    };
+
     // build the hardware
     let mut spec128 = ZxSpectrum128k::<Z80NMOS,
                                        PluggableMultiJoyBusDevice
@@ -997,7 +1027,15 @@ fn main() -> Result<()> {
     // second the Bandwidth-Limited Pulse Buffer implementation
     let mut blep = BlepStereo::build(0.8)(BandLimited::<BlepDelta>::new(2));
 
+    if let Some(joy) = joystick {
+        spec128.select_joystick(joy);
+    }
+
     let mut spectrum = ZxSpectrumModel::Spectrum128(spec128);
+
+    if model != ModelReq::Spectrum128 {
+        spectrum = spectrum.change_model(model);
+    }
 
     loop {
         use ZxSpectrumModel::*;

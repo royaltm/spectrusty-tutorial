@@ -14,19 +14,19 @@ Examples for the tutorial on how to build emulators with the SPECTRUSTY library.
 """
 
 [dependencies]
-cpal = "0.13.5"
+cpal = "0.14.2"
 minifb = "0.23"
 rand = "0.8"
 log = "0.4"
-simple_logger = "1.16.0"
+simple_logger = "3"
 
 [dependencies.spectrusty]
-version = "0.3.2"
+version = "0.3.3"
 features = ["audio", "cpal"]
 # path = "../spectrusty"
 
 [dependencies.spectrusty-utils]
-version = "0.3.1"
+version = "0.3.2"
 features = ["minifb"]
 # path = "../spectrusty/spectrusty-utils"
 
