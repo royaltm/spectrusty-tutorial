@@ -14,6 +14,7 @@ use minifb::{Key, KeyRepeat, Scale, Window, WindowOptions, Menu};
 use rand::prelude::*;
 #[allow(unused_imports)]
 use log::{error, warn, info, debug, trace};
+use spectrusty_tutorial::menus::AppMenu;
 
 use spectrusty::audio::{
     AudioSample, EarMicAmps4, EarOutAmps4, EarInAmps2,
@@ -548,6 +549,8 @@ fn run<C: Cpu, M: ZxMemory>(
 {
     window.set_title(&spectrum.info()?);
 
+    let app_menu = AppMenu::new(&window);
+
     // ensure the Blep implementation is prepared for pulses
     spectrum.ula.ensure_audio_frame_time(blep, audio.sample_rate(), UlaPAL::<M>::CPU_HZ as f64);
     audio.play()?;
@@ -571,7 +574,7 @@ fn run<C: Cpu, M: ZxMemory>(
             window.limit_update_rate(Some(std::time::Duration::from_millis(100)));
             loop {
                 if !is_running(window) { break 'main; }
-                match window.is_menu_pressed() {
+                match app_menu.is_menu_pressed(window) {
                     Some(MENU_PAUSE_ID) => { break; }
                     Some(MENU_EXIT_ID) => { break 'main; }
                     _ => {}
@@ -596,7 +599,7 @@ fn run<C: Cpu, M: ZxMemory>(
         window.update_with_buffer(&pixels, width, height)
               .map_err(|e| e.to_string())?;
 
-        if let Some(menu) = window.is_menu_pressed() {
+        if let Some(menu) = app_menu.is_menu_pressed(window) {
             match spectrum.update_on_user_request(menu)? {
                 Some(action) => return Ok(action),
                 None => { state_changed = true; }

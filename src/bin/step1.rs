@@ -8,6 +8,7 @@
 use core::mem;
 use minifb::{Key, KeyRepeat, Scale, Window, WindowOptions, Menu};
 use rand::prelude::*;
+use spectrusty_tutorial::menus::AppMenu;
 
 use spectrusty::z80emu::{Cpu, Z80NMOS};
 use spectrusty::chip::{ControlUnit, HostConfig, MemoryAccess, ThreadSyncTimer, ula::UlaPAL};
@@ -219,6 +220,8 @@ fn run<C: Cpu, M: ZxMemory>(
     let title = format!("ZX Spectrum {}k", spectrum.ula.memory_ref().ram_ref().len() / 1024);
     window.set_title(&title);
 
+    let app_menu = AppMenu::new(&window);
+
     let mut sync = ThreadSyncTimer::new(UlaPAL::<M>::frame_duration_nanos());
     let mut synchronize_frame = || {
         if let Err(missed) = sync.synchronize_thread_to_frame() {
@@ -243,7 +246,7 @@ fn run<C: Cpu, M: ZxMemory>(
         window.update_with_buffer(&pixels, width, height)
               .map_err(|e| e.to_string())?;
 
-        if let Some(menu_id) = window.is_menu_pressed() {
+        if let Some(menu_id) = app_menu.is_menu_pressed(window) {
             match menu_id {
                 MENU_HARD_RESET_ID  => spectrum.reset(true),
                 MENU_SOFT_RESET_ID  => spectrum.reset(false),

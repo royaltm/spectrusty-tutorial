@@ -9,6 +9,7 @@
 use core::mem;
 use minifb::{Key, KeyRepeat, Scale, Window, WindowOptions, Menu};
 use rand::prelude::*;
+use spectrusty_tutorial::menus::AppMenu;
 
 use spectrusty::audio::{
     AudioSample, EarMicAmps4,
@@ -264,6 +265,8 @@ fn run<C: Cpu, M: ZxMemory>(
     let title = format!("ZX Spectrum {}k", spectrum.ula.memory_ref().ram_ref().len() / 1024);
     window.set_title(&title);
 
+    let app_menu = AppMenu::new(&window);
+
     // ensure the Blep implementation is prepared for pulses
     spectrum.ula.ensure_audio_frame_time(blep, audio.sample_rate(), UlaPAL::<M>::CPU_HZ as f64);
     audio.play()?;
@@ -310,7 +313,7 @@ fn run<C: Cpu, M: ZxMemory>(
         // (4) prepare the BLEP for the next frame.
         blep.next_frame();
 
-        if let Some(menu_id) = window.is_menu_pressed() {
+        if let Some(menu_id) = app_menu.is_menu_pressed(window) {
             match menu_id {
                 MENU_HARD_RESET_ID  => spectrum.reset(true),
                 MENU_SOFT_RESET_ID  => spectrum.reset(false),
