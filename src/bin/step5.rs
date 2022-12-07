@@ -250,13 +250,20 @@ impl<C: Cpu, U> ZxSpectrum<C, U>
             // extract the MIC OUT state changes as a pulse iterator
             let pulses_iter = self.ula.mic_out_pulse_iter();
             // decode the pulses as TAPE data and write it as a TAP chunk fragment
-            let chunks = writer.write_pulses_as_tap_chunks(pulses_iter)?;
-            if chunks != 0 {
-                info!("Saved: {} TAP chunks", chunks);
-            }
-            if self.state.turbo || self.state.flash_tape  {
-                // is the state of the pulse decoder idle?
-                self.state.turbo = !writer.get_ref().is_idle();
+            match writer.write_pulses_as_tap_chunks(pulses_iter) {
+                Ok(chunks) => {
+                    if chunks != 0 {
+                        info!("Saved: {} TAP chunks", chunks);
+                    }
+                    if self.state.turbo || self.state.flash_tape  {
+                        // is the state of the pulse decoder idle?
+                        self.state.turbo = !writer.get_ref().is_idle();
+                    }
+                }
+                Err(err) => {
+                    error!("Couldn't write data to the TAP file: {:?}", err);
+                    self.state.turbo = false;
+                }
             }
             return Ok(true)
         }
@@ -1003,8 +1010,16 @@ fn main() -> Result<()> {
     if let Some(file_name) = tap_file_name {
         info!("Loading TAP file: {}", file_name);
         // open the .tap file for reading and writing
-        let tap_file = OpenOptions::new().read(true).write(true).create(true)
-                       .open(file_name)?;
+        let tap_file = match OpenOptions::new().read(true).write(true).create(true)
+                             .open(&file_name)
+        {
+            Ok(file) => file,
+            // if that fails, try just for reading
+            Err(err) => {
+                warn!("Couldn't open TAP for writing: {:?}", err);
+                OpenOptions::new().read(true).open(file_name)?
+            }
+        };
         // wrap the file into the TapChunkPulseIter
         let iter_pulse = read_tap_pulse_iter(tap_file);
         spec128.state.tape.tap = Some(Tap::Reader(iter_pulse));
