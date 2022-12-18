@@ -644,6 +644,7 @@ fn show_help() -> Result<()> {
 
 fn main() -> Result<()> {
     simple_logger::SimpleLogger::new().with_level(log::LevelFilter::Info).init()?;
+    spectrusty_tutorial::set_dpi_awareness()?;
     let mut args = std::env::args().skip(1);
     let mut border = BorderSize::Full;
     let mut model = ModelReq::Spectrum16;

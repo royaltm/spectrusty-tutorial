@@ -333,6 +333,7 @@ fn run<C: Cpu, M: ZxMemory>(
 
 fn main() -> Result<()> {
     simple_logger::SimpleLogger::new().with_level(log::LevelFilter::Info).init()?;
+    spectrusty_tutorial::set_dpi_awareness()?;
     // parsing the first command argument as a size of the border
     let border: BorderSize = if let Some(arg) = std::env::args().nth(1) {
         arg.parse()?
