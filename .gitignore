@@ -19,4 +19,6 @@ sftp-config.json
 *.exe
 *.dll
 *.so
+*.pdb
+/rustcwrap
 /tmp
