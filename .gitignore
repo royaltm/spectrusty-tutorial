@@ -17,3 +17,6 @@ sftp-config.json
 /*.tap
 *.ay
 *.exe
+*.dll
+*.so
+/tmp

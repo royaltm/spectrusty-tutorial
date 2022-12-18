@@ -1,0 +1,4 @@
+*.tap
+!deathcha.tap
+!hskiing.tap
+!iana128.tap
