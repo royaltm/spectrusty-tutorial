@@ -9,13 +9,14 @@
 use core::convert::TryFrom;
 use core::fmt::Write;
 use core::mem;
+use std::path::Path;
 use std::fs::{File, OpenOptions};
 use std::io::{self, Read};
-use minifb::{Key, KeyRepeat, Scale, Window, WindowOptions, Menu, MENU_KEY_SHIFT, MENU_KEY_CTRL};
+use minifb::{Key, KeyRepeat, Scale, Window, WindowOptions, Menu, MENU_KEY_SHIFT, MENU_KEY_ALT};
 use rand::prelude::*;
 #[allow(unused_imports)]
 use log::{error, warn, info, debug, trace};
-use spectrusty_tutorial::menus::AppMenu;
+use spectrusty_tutorial::{*, menus::AppMenu};
 
 use spectrusty::audio::{
     AudioSample, EarMicAmps4, EarOutAmps4, EarInAmps2,
@@ -416,6 +417,46 @@ impl<C: Cpu, U> ZxSpectrum<C, U>
         self.nmi_request = true;
     }
 
+    // insert a tape file by file path
+    fn insert_tape<P: AsRef<Path>>(&mut self, file_path: P) -> Result<()> {
+        info!("Inserting TAP file: {}", file_path.as_ref().display());
+        // open the .tap file for reading and writing, allow creating a new file
+        let tap_file = OpenOptions::new()
+        .read(true).write(true).create(true)
+        .open(&file_path)
+        .or_else(|err| {
+            // if that fails, re-try for reading only
+            warn!("Couldn't open TAP for writing: {:?}", err);
+            OpenOptions::new().read(true).open(file_path)
+        })?;
+        // wrap the file into the TapChunkPulseIter
+        let iter_pulse = read_tap_pulse_iter(tap_file);
+        self.state.tape.tap.replace(Tap::Reader(iter_pulse));
+        // or instead we could just write:
+        // self.tape.insert_as_reader(tap_file);
+        self.state.audible_tape = true;
+        self.state.flash_tape = true;
+        Ok(())
+    }
+
+    // open the file dialog and insert a selected tape file
+    fn open_tape(&mut self) {
+        if let Some(file_path) = open_tape_dialog() {
+            if let Err(err) = self.insert_tape(&file_path) {
+                error!("Error opening TAP file: {} {}", file_path.display(), err);
+            }
+        }
+    }
+
+    // open the save file dialog and insert a selected tape file
+    fn save_tape(&mut self) {
+        if let Some(file_path) = save_tape_dialog() {
+            if let Err(err) = self.insert_tape(&file_path) {
+                error!("Error creating TAP file: {} {}", file_path.display(), err);
+            }
+        }
+    }
+
     fn update_on_user_request(&mut self, menu_id: usize) -> Result<Option<Action>> {
         match menu_id {
             MENU_EXIT_ID         => return Ok(Some(Action::Exit)),
@@ -437,6 +478,9 @@ impl<C: Cpu, U> ZxSpectrum<C, U>
             MENU_TAPE_NEXT_ID    => { self.state.tape.forward_chunk()?; }
             MENU_TAPE_AUDIBLE_ID => { self.state.audible_tape = !self.state.audible_tape; }
             MENU_TAPE_FLASH_ID   => { self.state.flash_tape = !self.state.flash_tape; }
+            MENU_TAPE_OPEN_ID    => { self.open_tape(); }
+            MENU_TAPE_SAVE_ID    => { self.save_tape(); }
+            MENU_TAPE_EJECT_ID   => { self.state.tape.eject(); }
             _ => {}
         }
         Ok(None)
@@ -679,6 +723,9 @@ const MENU_TAPE_PREV_ID:    usize = 104;
 const MENU_TAPE_NEXT_ID:    usize = 105;
 const MENU_TAPE_AUDIBLE_ID: usize = 106;
 const MENU_TAPE_FLASH_ID:   usize = 107;
+const MENU_TAPE_OPEN_ID:    usize = 108;
+const MENU_TAPE_SAVE_ID:    usize = 109;
+const MENU_TAPE_EJECT_ID:   usize = 110;
 const MENU_JOY_KEMPSTON_ID: usize = 201;
 const MENU_JOY_FULLER_ID:   usize = 202;
 const MENU_JOY_IF2_0_ID:    usize = 203;
@@ -697,13 +744,13 @@ fn open_window(title: &str, width: usize, height: usize) -> Result<Window> {
     let mut models = Menu::new("Models").map_err(|e| e.to_string())?;
 
     models.add_item("ZX Spectrum 16k", MENU_MODEL_16_ID)
-        .shortcut(Key::F1, MENU_KEY_CTRL)
+        .shortcut(Key::F1, MENU_KEY_SHIFT|MENU_KEY_ALT)
         .build();
     models.add_item("ZX Spectrum 48k", MENU_MODEL_48_ID)
-        .shortcut(Key::F2, MENU_KEY_CTRL)
+        .shortcut(Key::F2, MENU_KEY_SHIFT|MENU_KEY_ALT)
         .build();
     models.add_item("ZX Spectrum 128k", MENU_MODEL_128_ID)
-        .shortcut(Key::F3, MENU_KEY_CTRL)
+        .shortcut(Key::F3, MENU_KEY_SHIFT|MENU_KEY_ALT)
         .build();
 
     menu.add_item("Hard reset", MENU_HARD_RESET_ID)
@@ -727,10 +774,16 @@ fn open_window(title: &str, width: usize, height: usize) -> Result<Window> {
         .build();
 
     let mut tape = Menu::new("Tape").map_err(|e| e.to_string())?;
-    tape.add_item("Rewind tape", MENU_TAPE_REWIND_ID)
+    tape.add_item("Open a TAPE file", MENU_TAPE_OPEN_ID)
+        .shortcut(Key::Insert, 0)
+        .build();
+    tape.add_item("Create a new TAPE file", MENU_TAPE_SAVE_ID)
+        .shortcut(Key::Insert, MENU_KEY_ALT)
+        .build();
+    tape.add_item("Rewind TAPE", MENU_TAPE_REWIND_ID)
         .shortcut(Key::Home, 0)
         .build();
-    tape.add_item("Prev chunk", MENU_TAPE_PREV_ID)
+    tape.add_item("Previous chunk", MENU_TAPE_PREV_ID)
         .shortcut(Key::PageUp, 0)
         .build();
     tape.add_item("Next chunk", MENU_TAPE_NEXT_ID)
@@ -745,11 +798,14 @@ fn open_window(title: &str, width: usize, height: usize) -> Result<Window> {
     tape.add_item("Record", MENU_TAPE_RECORD_ID)
         .shortcut(Key::F7, 0)
         .build();
+    tape.add_item("Eject TAPE", MENU_TAPE_EJECT_ID)
+        .shortcut(Key::Delete, MENU_KEY_ALT)
+        .build();
     tape.add_item("Toggle audible", MENU_TAPE_AUDIBLE_ID)
         .shortcut(Key::F8, 0)
         .build();
     tape.add_item("Toggle flash load/save", MENU_TAPE_FLASH_ID)
-        .shortcut(Key::F8, MENU_KEY_SHIFT)
+        .shortcut(Key::F8, MENU_KEY_ALT)
         .build();
 
     let mut sticks = Menu::new("Joysticks").map_err(|e| e.to_string())?;
@@ -757,19 +813,19 @@ fn open_window(title: &str, width: usize, height: usize) -> Result<Window> {
           .shortcut(Key::F4, 0)
           .build();
     sticks.add_item("Kempston", MENU_JOY_KEMPSTON_ID)
-          .shortcut(Key::F1, MENU_KEY_SHIFT)
+          .shortcut(Key::F1, MENU_KEY_ALT)
           .build();
     sticks.add_item("Fuller", MENU_JOY_FULLER_ID)
-          .shortcut(Key::F2, MENU_KEY_SHIFT)
+          .shortcut(Key::F2, MENU_KEY_ALT)
           .build();
     sticks.add_item("Sinclair Right", MENU_JOY_IF2_0_ID)
-          .shortcut(Key::F3, MENU_KEY_SHIFT)
+          .shortcut(Key::F3, MENU_KEY_ALT)
           .build();
     sticks.add_item("Sinclair Left", MENU_JOY_IF2_1_ID)
-          .shortcut(Key::F4, MENU_KEY_SHIFT)
+          .shortcut(Key::F4, MENU_KEY_ALT)
           .build();
     sticks.add_item("Cursor/AGF/Protek", MENU_JOY_AGF_ID)
-          .shortcut(Key::F5, MENU_KEY_SHIFT)
+          .shortcut(Key::F5, MENU_KEY_ALT)
           .build();
 
     window.add_menu(&menu);
@@ -1018,25 +1074,7 @@ fn main() -> Result<()> {
                                       >::new_with_rom();
     // if the user provided the file name
     if let Some(file_name) = tap_file_name {
-        info!("Loading TAP file: {}", file_name);
-        // open the .tap file for reading and writing
-        let tap_file = match OpenOptions::new().read(true).write(true).create(true)
-                             .open(&file_name)
-        {
-            Ok(file) => file,
-            // if that fails, try just for reading
-            Err(err) => {
-                warn!("Couldn't open TAP for writing: {:?}", err);
-                OpenOptions::new().read(true).open(file_name)?
-            }
-        };
-        // wrap the file into the TapChunkPulseIter
-        let iter_pulse = read_tap_pulse_iter(tap_file);
-        spec128.state.tape.tap = Some(Tap::Reader(iter_pulse));
-        // or instead we could just write:
-        // spec128.tape.insert_as_reader(tap_file);
-        spec128.state.audible_tape = true;
-        spec128.state.flash_tape = true;
+        spec128.insert_tape(file_name)?;
     }
 
     // width and height of the rendered frame image area in pixels

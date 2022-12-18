@@ -1,3 +1,19 @@
+use std::path::PathBuf;
+
+pub fn open_tape_dialog() -> Option<PathBuf> {
+    rfd::FileDialog::new()
+        .add_filter("TAPE", &["tap"])
+        .set_title("Open TAP file")
+        .pick_file()
+}
+
+pub fn save_tape_dialog() -> Option<PathBuf> {
+    rfd::FileDialog::new()
+        .add_filter("TAPE", &["tap"])
+        .set_title("Create a new TAP file")
+        .save_file()
+}
+
 #[cfg(any(
     target_os = "linux",
     target_os = "freebsd",

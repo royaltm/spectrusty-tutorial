@@ -168,10 +168,10 @@ fn open_window(title: &str, width: usize, height: usize) -> Result<Window> {
     let mut models = Menu::new("Models").map_err(|e| e.to_string())?;
 
     models.add_item("ZX Spectrum 16k", MENU_MODEL_16_ID)
-        .shortcut(Key::F1, minifb::MENU_KEY_CTRL)
+        .shortcut(Key::F1, minifb::MENU_KEY_SHIFT|minifb::MENU_KEY_ALT)
         .build();
     models.add_item("ZX Spectrum 48k", MENU_MODEL_48_ID)
-        .shortcut(Key::F2, minifb::MENU_KEY_CTRL)
+        .shortcut(Key::F2, minifb::MENU_KEY_SHIFT|minifb::MENU_KEY_ALT)
         .build();
 
     menu.add_item("Hard reset", MENU_HARD_RESET_ID)
