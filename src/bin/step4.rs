@@ -9,6 +9,7 @@
 use core::convert::TryFrom;
 use core::fmt::Write;
 use core::mem;
+use std::borrow::Cow;
 use std::path::Path;
 use std::fs::{File, OpenOptions};
 use minifb::{Key, KeyRepeat, Scale, Window, WindowOptions, Menu, MENU_KEY_SHIFT, MENU_KEY_ALT};
@@ -26,9 +27,16 @@ use spectrusty::audio::{
 };
 use spectrusty::z80emu::{Cpu, Z80NMOS};
 use spectrusty::clock::{FTs, VFrameTs};
+#[allow(unused_imports)]
 use spectrusty::bus::{
     BusDevice, PortAddress, NullDevice,
     joystick::{
+        KempstonJoystick, FullerJoystick, SinclairRightJoystick, SinclairLeftJoystick, CursorJoystick,
+        FullerJoyPortAddress, FullerJoystickDevice,
+        SinclairLeftJoyPortAddress, SinclairRightJoyPortAddress,
+        SinclairJoystickDevice, SinclairJoyLeftMap, SinclairJoyRightMap,
+        CursorJoyPortAddress, CursorJoystickDevice,
+        KempstonJoyPortAddress, KempstonJoystickDevice,
         MultiJoystickBusDevice, JoystickSelect, JoystickBusDevice,
         JoystickDevice, JoystickInterface,
         NullJoystickDevice
@@ -392,7 +400,7 @@ impl<C: Cpu, M: ZxMemory, D: BusDevice> ZxSpectrum<C, M, D>
             MENU_HARD_RESET_ID   => self.reset(true),
             MENU_SOFT_RESET_ID   => self.reset(false),
             MENU_TRIG_NMI_ID     => { self.trigger_nmi(); }
-            // MENU_BUS_TOGJOY_ID   => { self.toggle_joystick(); }
+            MENU_BUS_TOGJOY_ID   => { self.toggle_joystick(); }
             MENU_JOY_KEMPSTON_ID|MENU_JOY_FULLER_ID|MENU_JOY_IF2_0_ID|MENU_JOY_IF2_1_ID|MENU_JOY_AGF_ID|
             MENU_JOY_NONE_ID     => { self.select_joystick(menu_id - MENU_JOY_KEMPSTON_ID); }
             MENU_TURBO_ID        => { self.state.turbo = !self.state.turbo; }
@@ -450,7 +458,8 @@ trait JoystickAccess {
     fn toggle_joystick(&mut self) {}
     // Does nothing by default.
     fn select_joystick(&mut self, _joy: usize) {}
-    fn current_joystick(&self) -> Option<&str> {
+    // Joystick name.
+    fn current_joystick(&self) -> Option<Cow<str>> {
         None
     }
 }
@@ -460,17 +469,22 @@ impl<C: Cpu, M: ZxMemory> JoystickAccess for ZxSpectrum<C, M> {
     type JoystickInterface = NullJoystickDevice;
 }
 
-// implement a joystick device
+// implement a single joystick device
 impl<C, M, P, J> JoystickAccess for ZxSpectrum<C, M, JoystickBusDevice<P, J, TerminatorDevice>>
     where C: Cpu,
           M: ZxMemory,
           P: PortAddress,
-          J: JoystickDevice + JoystickInterface
+          J: JoystickDevice + JoystickInterface,
+          JoystickBusDevice<P, J, TerminatorDevice>: std::fmt::Display
 {
     type JoystickInterface = J;
 
     fn joystick_interface(&mut self) -> Option<&mut Self::JoystickInterface> {
         Some(self.ula.bus_device_mut())
+    }
+
+    fn current_joystick(&self) -> Option<Cow<str>> {
+        Some(self.ula.bus_device_ref().to_string().into())
     }
 }
 
@@ -482,7 +496,7 @@ impl<C, M, P, J> JoystickAccess for ZxSpectrum<C, M, PluggableJoyBusDevice<P, J>
           M: ZxMemory,
           P: PortAddress,
           J: JoystickDevice + JoystickInterface,
-          JoystickBusDevice<P, J, TerminatorDevice>: Default
+          JoystickBusDevice<P, J, TerminatorDevice>: Default + core::fmt::Display
 {
     type JoystickInterface = J;
 
@@ -498,6 +512,20 @@ impl<C, M, P, J> JoystickAccess for ZxSpectrum<C, M, PluggableJoyBusDevice<P, J>
         else {
             *joystick = Some(JoystickBusDevice::default());
         }
+    }
+
+    fn select_joystick(&mut self, joy_index: usize) {
+        let joystick = &mut self.ula.bus_device_mut().device;
+        if joy_index > JoystickSelect::MAX_GLOBAL_INDEX {
+            *joystick = None;
+        }
+        else {
+            *joystick = Some(JoystickBusDevice::default());
+        }
+    }
+
+    fn current_joystick(&self) -> Option<Cow<str>> {
+        self.ula.bus_device_ref().as_ref().map(|joy| joy.to_string().into())
     }
 }
 
@@ -516,6 +544,17 @@ impl<C, M> JoystickAccess for ZxSpectrum<C, M, PluggableMultiJoyBusDevice>
                 .and_then(|j| j.joystick_interface(sub_joy))
     }
 
+    fn toggle_joystick(&mut self) {
+        let joystick = &mut self.ula.bus_device_mut().device;
+        self.state.sub_joy = 0;
+        if joystick.is_some() {
+            *joystick = None;
+        }
+        else {
+            *joystick = Some(MultiJoystickBusDevice::default());
+        }
+    }
+
     fn select_joystick(&mut self, joy_index: usize) {
         let joy_dev = JoystickSelect::new_with_index(joy_index).map(|(joy, index)| {
             self.state.sub_joy = index;
@@ -526,8 +565,8 @@ impl<C, M> JoystickAccess for ZxSpectrum<C, M, PluggableMultiJoyBusDevice>
         // self.ula.bus_device_mut().device = joy_dev;
     }
 
-    fn current_joystick(&self) -> Option<&str> {
-        self.ula.bus_device_ref().as_deref().map(Into::into)
+    fn current_joystick(&self) -> Option<Cow<str>> {
+        self.ula.bus_device_ref().as_deref().map(<&str>::from).map(Into::into)
     }
 }
 
@@ -609,7 +648,7 @@ const MENU_TAPE_FLASH_ID:   usize = 107;
 const MENU_TAPE_OPEN_ID:    usize = 108;
 const MENU_TAPE_SAVE_ID:    usize = 109;
 const MENU_TAPE_EJECT_ID:   usize = 110;
-// const MENU_BUS_TOGJOY_ID:   usize = 200;
+const MENU_BUS_TOGJOY_ID:   usize = 200;
 const MENU_JOY_KEMPSTON_ID: usize = 201;
 const MENU_JOY_FULLER_ID:   usize = 202;
 const MENU_JOY_IF2_0_ID:    usize = 203;
@@ -650,9 +689,6 @@ fn open_window(title: &str, width: usize, height: usize) -> Result<Window> {
         .shortcut(Key::Pause, 0)
         .build();
     menu.add_sub_menu("Select model", &models);
-    // menu.add_item("Toggle joystick", MENU_BUS_TOGJOY_ID)
-    //     .shortcut(Key::F4, 0)
-    //     .build();
     menu.add_item("Exit", MENU_EXIT_ID)
         .shortcut(Key::F10, 0)
         .build();
@@ -710,6 +746,8 @@ fn open_window(title: &str, width: usize, height: usize) -> Result<Window> {
           .build();
     sticks.add_item("Cursor/AGF/Protek", MENU_JOY_AGF_ID)
           .shortcut(Key::F5, MENU_KEY_ALT)
+          .build();
+    sticks.add_item("Toggle joystick", MENU_BUS_TOGJOY_ID)
           .build();
 
     window.add_menu(&menu);
@@ -944,8 +982,30 @@ fn main() -> Result<()> {
             }
         };
     }
+
     // build the hardware
-    let mut spec16 = ZxSpectrum16k::<Z80NMOS, PluggableMultiJoyBusDevice>::default();
+
+    // with no joystick
+    // type Joystick = TerminatorDevice;
+
+    // or with a static (unpluggable) joystick
+    // type Joystick = KempstonJoystick<TerminatorDevice>;
+    // type Joystick = FullerJoystick<TerminatorDevice>;
+    // type Joystick = SinclairRightJoystick<TerminatorDevice>;
+    // type Joystick = SinclairLeftJoystick<TerminatorDevice>;
+    // type Joystick = CursorJoystick<TerminatorDevice>;
+
+    // or with a single pluggable joystick
+    // type Joystick = OptionalBusDevice<KempstonJoystick<TerminatorDevice>>;
+    // type Joystick = OptionalBusDevice<FullerJoystick<TerminatorDevice>>;
+    // type Joystick = OptionalBusDevice<SinclairRightJoystick<TerminatorDevice>>;
+    // type Joystick = OptionalBusDevice<SinclairLeftJoystick<TerminatorDevice>>;
+    // type Joystick = OptionalBusDevice<CursorJoystick<TerminatorDevice>>;
+
+    // or with pluggable and selectable multiple joysticks
+    type Joystick = PluggableMultiJoyBusDevice;
+
+    let mut spec16 = ZxSpectrum16k::<Z80NMOS, Joystick>::default();
     // some entropy in memory for nice visuals
     spec16.ula.memory_mut().fill_mem(.., random)?;
     // get the software
