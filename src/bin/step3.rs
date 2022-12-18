@@ -14,7 +14,7 @@ use minifb::{Key, KeyRepeat, Scale, Window, WindowOptions, Menu};
 use rand::prelude::*;
 #[allow(unused_imports)]
 use log::{error, warn, info, debug, trace};
-use spectrusty_tutorial::menus::AppMenu;
+use spectrusty_tutorial::{*, menus::AppMenu};
 
 use spectrusty::audio::{
     AudioSample, EarMicAmps4, EarOutAmps4, EarInAmps2,
@@ -542,6 +542,9 @@ fn produce_and_send_audio_frame(
     audio.send_frame()
 }
 
+#[cfg(feature = "measure_cpu_freq")]
+use spectrusty::video::VideoFrame;
+
 fn run<C: Cpu, M: ZxMemory>(
         spectrum: &mut ZxSpectrum<C, M>,
         Env { window, width, height, border, pixels, audio, blep }: Env<'_>,
@@ -565,6 +568,9 @@ fn run<C: Cpu, M: ZxMemory>(
     fn is_running(window: &Window) -> bool {
         window.is_open() && !window.is_key_down(Key::Escape)
     }
+
+    #[cfg(feature = "measure_cpu_freq")]
+    measure_ticks_start!(time, dur, ticks, spectrum, UlaPAL<M>);
 
     // emulator main loop
     'main: while is_running(window) {
@@ -591,6 +597,9 @@ fn run<C: Cpu, M: ZxMemory>(
         else {
             spectrum.run_frame()?
         };
+
+        #[cfg(feature = "measure_cpu_freq")]
+        measure_ticks!(time, dur, ticks, spectrum, UlaPAL<M>);
 
         let (video_buffer, pitch) = acquire_video_buffer(pixels.as_mut(), width);
         spectrum.render_video::<SpectrumPal>(video_buffer, pitch, border);

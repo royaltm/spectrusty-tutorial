@@ -53,3 +53,41 @@ pub fn set_dpi_awareness() -> Result<(), String> {
         },
     }
 }
+
+#[macro_export]
+macro_rules! total_ticks_of {
+    ($spectrum:ident, $ula:ty) => {
+        $spectrum.ula.current_frame() *
+            <$ula as Video>::VideoFrame::FRAME_TSTATES_COUNT as u64 +
+            $spectrum.ula.current_tstate() as u64
+    };
+}
+
+#[macro_export]
+macro_rules! measure_ticks_start {
+    ($time:ident, $dur:ident, $ticks:ident, $spectrum:ident, $ula:ty) => {
+        let mut $time = std::time::Instant::now();
+        let mut $ticks = total_ticks_of!($spectrum, $ula);
+        let mut $dur = std::time::Duration::ZERO;
+    };
+}
+
+#[macro_export]
+macro_rules! measure_ticks {
+    ($time:ident, $dur:ident, $ticks:ident, $spectrum:ident, $ula:ty) => {
+        {
+            const SECOND: std::time::Duration = std::time::Duration::from_secs(1);
+            let time_end = std::time::Instant::now();
+            $dur += time_end.duration_since($time);
+            $time = time_end;
+            if $dur >= SECOND {
+                let ticks_end = total_ticks_of!($spectrum, $ula);
+                let delta_ticks = ticks_end - $ticks;
+                $ticks = ticks_end;
+                println!("CPU MHz: {:10.04}",
+                    delta_ticks as f64 / $dur.as_secs_f64() / 1.0e6);
+                $dur = std::time::Duration::ZERO;
+            }
+        }
+    };
+}

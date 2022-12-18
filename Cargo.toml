@@ -13,6 +13,11 @@ description = """
 Examples for the tutorial on how to build emulators with the SPECTRUSTY library.
 """
 
+[features]
+default = []
+boxed_frame_cache = ["spectrusty/boxed_frame_cache"]
+measure_cpu_freq = []
+
 [dependencies]
 cpal = "0.14.2"
 minifb = "0.23"
