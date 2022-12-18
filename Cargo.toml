@@ -27,12 +27,12 @@ simple_logger = "3"
 rfd = "0.10"
 
 [dependencies.spectrusty]
-version = "0.3.3"
+version = "0.4"
 features = ["audio", "cpal"]
 # path = "../spectrusty"
 
 [dependencies.spectrusty-utils]
-version = "0.3.2"
+version = "0.4"
 features = ["minifb"]
 # path = "../spectrusty/spectrusty-utils"
 
