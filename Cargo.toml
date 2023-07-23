@@ -20,7 +20,7 @@ measure_cpu_freq = []
 
 [dependencies]
 cpal = "0.15.2"
-minifb = "0.24"
+minifb = {git = "https://github.com/royaltm/rust_minifb.git"}
 rand = "0.8"
 log = "0.4"
 simple_logger = "4"
