@@ -12,7 +12,7 @@ use core::mem;
 use std::path::Path;
 use std::fs::{File, OpenOptions};
 use std::io::{self, Read};
-use minifb::{Key, KeyRepeat, Scale, Window, WindowOptions, Menu, MENU_KEY_SHIFT, MENU_KEY_ALT};
+use minifb::{Key, KeyRepeat, Scale, Window, WindowOptions, Menu, MENU_KEY_SHIFT, MENU_KEY_CTRL};
 use rand::prelude::*;
 #[allow(unused_imports)]
 use log::{error, warn, info, debug, trace};
@@ -744,13 +744,13 @@ fn open_window(title: &str, width: usize, height: usize) -> Result<Window> {
     let mut models = Menu::new("Models").map_err(|e| e.to_string())?;
 
     models.add_item("ZX Spectrum 16k", MENU_MODEL_16_ID)
-        .shortcut(Key::F1, MENU_KEY_SHIFT|MENU_KEY_ALT)
+        .shortcut(Key::F1, MENU_KEY_CTRL)
         .build();
     models.add_item("ZX Spectrum 48k", MENU_MODEL_48_ID)
-        .shortcut(Key::F2, MENU_KEY_SHIFT|MENU_KEY_ALT)
+        .shortcut(Key::F2, MENU_KEY_CTRL)
         .build();
     models.add_item("ZX Spectrum 128k", MENU_MODEL_128_ID)
-        .shortcut(Key::F3, MENU_KEY_SHIFT|MENU_KEY_ALT)
+        .shortcut(Key::F3, MENU_KEY_CTRL)
         .build();
 
     menu.add_item("Hard reset", MENU_HARD_RESET_ID)
@@ -778,7 +778,7 @@ fn open_window(title: &str, width: usize, height: usize) -> Result<Window> {
         .shortcut(Key::Insert, 0)
         .build();
     tape.add_item("Create a new TAPE file", MENU_TAPE_SAVE_ID)
-        .shortcut(Key::Insert, MENU_KEY_ALT)
+        .shortcut(Key::Insert, MENU_KEY_SHIFT)
         .build();
     tape.add_item("Rewind TAPE", MENU_TAPE_REWIND_ID)
         .shortcut(Key::Home, 0)
@@ -799,13 +799,13 @@ fn open_window(title: &str, width: usize, height: usize) -> Result<Window> {
         .shortcut(Key::F7, 0)
         .build();
     tape.add_item("Eject TAPE", MENU_TAPE_EJECT_ID)
-        .shortcut(Key::Delete, MENU_KEY_ALT)
+        .shortcut(Key::Delete, MENU_KEY_SHIFT)
         .build();
     tape.add_item("Toggle audible", MENU_TAPE_AUDIBLE_ID)
         .shortcut(Key::F8, 0)
         .build();
     tape.add_item("Toggle flash load/save", MENU_TAPE_FLASH_ID)
-        .shortcut(Key::F8, MENU_KEY_ALT)
+        .shortcut(Key::F8, MENU_KEY_SHIFT)
         .build();
 
     let mut sticks = Menu::new("Joysticks").map_err(|e| e.to_string())?;
@@ -813,19 +813,19 @@ fn open_window(title: &str, width: usize, height: usize) -> Result<Window> {
           .shortcut(Key::F4, 0)
           .build();
     sticks.add_item("Kempston", MENU_JOY_KEMPSTON_ID)
-          .shortcut(Key::F1, MENU_KEY_ALT)
+          .shortcut(Key::F1, MENU_KEY_SHIFT)
           .build();
     sticks.add_item("Fuller", MENU_JOY_FULLER_ID)
-          .shortcut(Key::F2, MENU_KEY_ALT)
+          .shortcut(Key::F2, MENU_KEY_SHIFT)
           .build();
     sticks.add_item("Sinclair Right", MENU_JOY_IF2_0_ID)
-          .shortcut(Key::F3, MENU_KEY_ALT)
+          .shortcut(Key::F3, MENU_KEY_SHIFT)
           .build();
     sticks.add_item("Sinclair Left", MENU_JOY_IF2_1_ID)
-          .shortcut(Key::F4, MENU_KEY_ALT)
+          .shortcut(Key::F4, MENU_KEY_SHIFT)
           .build();
     sticks.add_item("Cursor/AGF/Protek", MENU_JOY_AGF_ID)
-          .shortcut(Key::F5, MENU_KEY_ALT)
+          .shortcut(Key::F5, MENU_KEY_SHIFT)
           .build();
 
     window.add_menu(&menu);

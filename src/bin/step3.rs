@@ -473,10 +473,10 @@ fn open_window(title: &str, width: usize, height: usize) -> Result<Window> {
     let mut models = Menu::new("Models").map_err(|e| e.to_string())?;
 
     models.add_item("ZX Spectrum 16k", MENU_MODEL_16_ID)
-        .shortcut(Key::F1, minifb::MENU_KEY_SHIFT|minifb::MENU_KEY_ALT)
+        .shortcut(Key::F1, minifb::MENU_KEY_CTRL)
         .build();
     models.add_item("ZX Spectrum 48k", MENU_MODEL_48_ID)
-        .shortcut(Key::F2, minifb::MENU_KEY_SHIFT|minifb::MENU_KEY_ALT)
+        .shortcut(Key::F2, minifb::MENU_KEY_CTRL)
         .build();
 
     menu.add_item("Hard reset", MENU_HARD_RESET_ID)
@@ -504,7 +504,7 @@ fn open_window(title: &str, width: usize, height: usize) -> Result<Window> {
         .shortcut(Key::Insert, 0)
         .build();
     tape.add_item("Create a new TAPE file", MENU_TAPE_SAVE_ID)
-        .shortcut(Key::Insert, minifb::MENU_KEY_ALT)
+        .shortcut(Key::Insert, minifb::MENU_KEY_SHIFT)
         .build();
     tape.add_item("Rewind tape", MENU_TAPE_REWIND_ID)
         .shortcut(Key::Home, 0)
@@ -525,13 +525,13 @@ fn open_window(title: &str, width: usize, height: usize) -> Result<Window> {
         .shortcut(Key::F7, 0)
         .build();
     tape.add_item("Eject TAPE", MENU_TAPE_EJECT_ID)
-        .shortcut(Key::Delete, minifb::MENU_KEY_ALT)
+        .shortcut(Key::Delete, minifb::MENU_KEY_SHIFT)
         .build();
     tape.add_item("Toggle audible", MENU_TAPE_AUDIBLE_ID)
         .shortcut(Key::F8, 0)
         .build();
     tape.add_item("Toggle flash load/save", MENU_TAPE_FLASH_ID)
-        .shortcut(Key::F8, minifb::MENU_KEY_ALT)
+        .shortcut(Key::F8, minifb::MENU_KEY_SHIFT)
         .build();
 
     window.add_menu(&menu);
