@@ -20,7 +20,7 @@ use spectrusty_tutorial::{*, menus::AppMenu};
 use spectrusty::audio::{
     AudioSample, EarMicAmps4, EarOutAmps4, EarInAmps2,
     Blep, AudioFrame, FromSample, EarMicOutAudioFrame, EarInAudioFrame,
-    synth::BandLimited,
+    synth::{BandLimited, ext::BandLimitedExt},
     carousel::AudioFrameResult,
     host::cpal::AudioHandleAnyFormat
 };
@@ -94,7 +94,7 @@ enum ModelReq {
 // the type of the audio handle
 type Audio = AudioHandleAnyFormat;
 // the type of the Blep implementation amplitude delta
-type BlepDelta = f32; // i16
+type BlepDelta = f32; // i16, i32, f32, f64
 // the type of the Blep implementation
 type BandLim = BandLimited<BlepDelta>;
 // the audio carousel latency
@@ -565,19 +565,12 @@ fn produce_audio_frame<T: AudioSample + FromSample<BlepDelta>>(
         blep: &mut BandLim,
     )
 {
-    // the diff buffer summing iterator of the channel 0
-    let sample_iter = blep.sum_iter::<T>(0);
-    // the number of samples that the iterator will generate
-    let frame_sample_count = sample_iter.len();
+    // the number of samples generated this frame
+    let frame_sample_count = blep.num_samples_ended_frame().unwrap();
     // ensure the size of the audio frame buffer is exactly as we need it
     outbuf.resize(frame_sample_count * output_channels, T::silence());
-    // render each sample
-    for (chans, sample) in outbuf.chunks_mut(output_channels).zip(sample_iter) {
-        // write sample to each channel
-        for p in chans.iter_mut() {
-            *p = sample;
-        }
-    }
+    // render samples to audio channels
+    blep.render_audio_fill_interleaved(outbuf, output_channels, 0);
 }
 
 fn produce_and_send_audio_frame(
@@ -587,12 +580,27 @@ fn produce_and_send_audio_frame(
 {
     let channels = audio.channels().into();
     match audio {
+        AudioHandleAnyFormat::I8(audio) =>
+            audio.producer.render_frame(|out| produce_audio_frame(channels, out, blep)),
+        AudioHandleAnyFormat::U8(audio) =>
+            audio.producer.render_frame(|out| produce_audio_frame(channels, out, blep)),
         AudioHandleAnyFormat::I16(audio) =>
             audio.producer.render_frame(|out| produce_audio_frame(channels, out, blep)),
         AudioHandleAnyFormat::U16(audio) =>
             audio.producer.render_frame(|out| produce_audio_frame(channels, out, blep)),
+        AudioHandleAnyFormat::I32(audio) =>
+            audio.producer.render_frame(|out| produce_audio_frame(channels, out, blep)),
+        AudioHandleAnyFormat::U32(audio) =>
+            audio.producer.render_frame(|out| produce_audio_frame(channels, out, blep)),
+        AudioHandleAnyFormat::I64(audio) =>
+            audio.producer.render_frame(|out| produce_audio_frame(channels, out, blep)),
+        AudioHandleAnyFormat::U64(audio) =>
+            audio.producer.render_frame(|out| produce_audio_frame(channels, out, blep)),
         AudioHandleAnyFormat::F32(audio) =>
             audio.producer.render_frame(|out| produce_audio_frame(channels, out, blep)),
+        AudioHandleAnyFormat::F64(audio) =>
+            audio.producer.render_frame(|out| produce_audio_frame(channels, out, blep)),
+        _ => panic!("Unsupported sample format!")
     }
     // send the frame buffer to the consumer
     audio.send_frame()

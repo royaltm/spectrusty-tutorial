@@ -19,20 +19,22 @@ boxed_frame_cache = ["spectrusty/boxed_frame_cache"]
 measure_cpu_freq = []
 
 [dependencies]
-cpal = "0.14.2"
-minifb = "0.23"
+cpal = "0.15.2"
+minifb = "0.24"
 rand = "0.8"
 log = "0.4"
-simple_logger = "3"
-rfd = "0.10"
+simple_logger = "4"
+rfd = "0.11"
 
 [dependencies.spectrusty]
-version = "0.4"
+# version = "0.4"
+git = "https://github.com/royaltm/spectrusty"
 features = ["audio", "cpal"]
 # path = "../spectrusty"
 
 [dependencies.spectrusty-utils]
-version = "0.4"
+# version = "0.4"
+git = "https://github.com/royaltm/spectrusty"
 features = ["minifb"]
 # path = "../spectrusty/spectrusty-utils"
 
